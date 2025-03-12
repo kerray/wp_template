@@ -1,0 +1,12 @@
+# AI Wordpress project Template
+
+We have ./memlog, where we save in datetime stamped files overall information about what work was successfully done (finished, tested, documentation updated is the definition of done for the template part of the project).
+
+Plans on what should be done go into ./memlog/*-plan.md files and we keep it precise and current by marking sections as completed and cleaning up things once some larger unit of work is done. 
+
+
+Our aim is to have the user clone this template repo, open it with an AI agent (currently VSCode with Cline and Claude Sonnet 3.5 or 3.7), and then telling the agent what the game content should be, what the presentation should look like, and have it automatically compiled and verified and publishable with GitHub Actions and possibly other pipelines.
+
+But before we get there, we need to set up the template itself, since this project here - starting with these .clinerules, README.md that will hold the gist of it, ./docs/ folder, where we will store documentation for the template development and for things in use.
+
+Part of this template project should be ./prompts, because the AI agents working on this projects will need to be able to take on several separate roles - web developer, web designer, content editor... 

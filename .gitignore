@@ -1,0 +1,48 @@
+# Windows-specific files
+*Zone.Identifier
+*Zone - kopie.Identifier
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+
+# IDE and editor files
+.idea/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# WordPress specific
+src/wp-config.php
+src/wp-content/uploads/
+src/wp-content/upgrade/
+src/wp-content/backup-db/
+src/wp-content/cache/
+src/wp-content/backups/
+src/.htaccess
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Database backups
+backups/*.sql
+backups/*.sql.gz
+backups/*.sql.zip
+backups/*.tar.gz
+
+# Docker volumes
+db_data/

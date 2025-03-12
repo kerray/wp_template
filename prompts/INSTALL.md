@@ -1,0 +1,502 @@
+# WordPress AI Workspace Installation Guide
+
+> Status: Template Development - Last Updated: March 12, 2025
+
+This guide provides instructions for AI agents to help users set up a WordPress project using this template. As steps are completed, they will be marked and documented, transforming this guide into a verified installation procedure.
+
+## Table of Contents
+1. [Project Information Collection](#project-information)
+2. [Docker Environment Setup](#docker-environment)
+3. [WordPress Installation](#wordpress-installation)
+4. [Database & Backup Management](#database-backup)
+5. [WP-CLI Integration](#wp-cli-integration)
+6. [VSCode Tasks Configuration](#vscode-tasks)
+7. [Testing & Verification](#testing-verification)
+8. [Troubleshooting](#troubleshooting)
+
+## Progress Tracking
+- [ ] Project information collected
+- [ ] Docker environment configured
+- [ ] WordPress installed
+- [ ] Database setup completed
+- [ ] WP-CLI installed and configured
+- [ ] VSCode tasks created
+- [ ] Installation tested and verified
+
+## Project Information
+
+AI Agent: Ask the user for the following information to configure the project:
+
+- [ ] **Admin Contact**: Email and name for WordPress admin
+- [ ] **Domain Name**: Primary domain for the site
+- [ ] **Website Name**: Display name for the site
+- [ ] **Project Description**: Brief description of the site's purpose
+
+Once collected, this information will be used to:
+1. Update the README.md file with project details
+2. Configure the .clinerules file with project-specific instructions
+3. Set up the initial WordPress configuration
+
+Example collection dialogue:
+```
+AI: I'll help you set up your WordPress project. First, I need some basic information:
+- What email address should be used for the WordPress admin account?
+- What is the primary domain name for this site? (e.g., example.com)
+- What is the display name for the website?
+- Could you provide a brief description of the site's purpose?
+
+User: [Provides information]
+
+AI: Thank you! I'll use this information to configure your project.
+```
+
+## Docker Environment
+
+- [ ] **Docker Compose Configuration**
+  - Create a `docker-compose.yml` file in the project root
+  - Configure services for WordPress and MySQL
+  - Include optional PHP-FPM/Nginx configuration
+  - Always use `docker-compose up -d` to start containers in detached mode (background)
+  - This ensures the terminal isn't blocked while images are pulled and containers start
+
+- [ ] **Environment Variables**
+  - Create a `.env` file template for Docker configuration
+  - Include variables for database credentials, ports, etc.
+
+- [ ] **Network Configuration**
+  - Configure internal network for container communication
+  - Set up port mapping for local access
+
+Example docker-compose.yml:
+```yaml
+version: '3'
+
+services:
+  # Database
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - wordpress_network
+
+  # WordPress (Apache)
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+    ports:
+      - "${WP_PORT}:80"
+    restart: always
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+    networks:
+      - wordpress_network
+
+  # Alternative: WordPress with PHP-FPM and Nginx
+  # Uncomment if preferred over Apache
+  # wordpress_fpm:
+  #   depends_on:
+  #     - db
+  #   image: wordpress:php8.1-fpm
+  #   volumes:
+  #     - ./src:/var/www/html
+  #   restart: always
+  #   environment:
+  #     WORDPRESS_DB_HOST: db
+  #     WORDPRESS_DB_USER: ${MYSQL_USER}
+  #     WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+  #     WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+  #   networks:
+  #     - wordpress_network
+  
+  # nginx:
+  #   depends_on:
+  #     - wordpress_fpm
+  #   image: nginx:latest
+  #   ports:
+  #     - "${WP_PORT}:80"
+  #   volumes:
+  #     - ./src:/var/www/html
+  #     - ./docker/nginx/conf.d:/etc/nginx/conf.d
+  #   networks:
+  #     - wordpress_network
+
+  # phpMyAdmin
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - '${PMA_PORT}:80'
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - wordpress_network
+
+networks:
+  wordpress_network:
+
+volumes:
+  db_data:
+```
+
+Example .env file:
+```
+# Database settings
+MYSQL_ROOT_PASSWORD=rootpassword
+MYSQL_DATABASE=wordpress
+MYSQL_USER=wordpress
+MYSQL_PASSWORD=wordpress
+
+# Port settings
+WP_PORT=8080
+PMA_PORT=8081
+```
+
+## WordPress Installation
+
+- [ ] **New Installation**
+  - Download latest WordPress files to `./src` directory
+  - Configure wp-config.php with environment variables
+  - Set up initial database structure
+
+- [ ] **Existing Site Integration**
+  - Import existing WordPress files to `./src` directory
+  - Update configuration for local development
+  - Handle path and URL adjustments
+
+- [ ] **File Structure Organization**
+  - Ensure proper permissions on WordPress files
+  - Set up .gitignore for WordPress development
+
+### New Installation Commands
+
+```bash
+# Create src directory if it doesn't exist
+mkdir -p src
+
+# Download latest WordPress
+curl -o wordpress.tar.gz https://wordpress.org/latest.tar.gz
+
+# Extract to src directory
+tar -xzf wordpress.tar.gz -C src --strip-components=1
+
+# Remove the archive
+rm wordpress.tar.gz
+
+# Set proper permissions
+chmod -R 755 src
+find src -type d -exec chmod 755 {} \;
+find src -type f -exec chmod 644 {} \;
+```
+
+### Existing Site Integration
+
+For existing sites, the AI agent should:
+
+1. Ask the user for connection details (FTP/SFTP/SSH)
+2. Verify connection tools are installed
+3. Download the site files to the ./src directory
+4. Adjust configuration for local development
+
+Example dialogue:
+```
+AI: Do you have an existing WordPress site you'd like to import?
+
+User: Yes, I have an existing site.
+
+AI: Great! I'll need some connection details to import your site:
+- What's the connection method? (FTP, SFTP, SSH)
+- What's the hostname or IP address?
+- What are the username and password?
+- What's the remote path to the WordPress installation?
+
+User: [Provides information]
+
+AI: Thank you! I'll now check if the necessary tools are installed and proceed with importing your site.
+```
+
+## Database & Backup Management
+
+- [ ] **Backup Directory Setup**
+  - Create `./backups` directory if it doesn't exist
+  - Add README.md explaining backup file formats
+
+- [ ] **Backup Validation**
+  - Implement checks to validate SQL backup files
+  - Provide commands to inspect backup headers
+
+- [ ] **Database Import/Export**
+  - Include commands for importing backups
+  - Document export procedures for local development
+
+### Backup Directory Setup
+
+```bash
+# Create backups directory
+mkdir -p backups
+
+# Create README.md in backups directory
+cat > backups/README.md << 'EOF'
+# WordPress Database Backups
+
+This directory is for storing WordPress database backups.
+
+## Supported Formats
+- SQL files (.sql)
+- Compressed SQL files (.sql.gz, .sql.zip)
+
+Place your database backups in this directory, and the AI agent will help you import them into your local development environment.
+EOF
+```
+
+### Backup Validation Commands
+
+```bash
+# Check if a file is a valid SQL backup (shows first 10 lines)
+head -n 10 backups/your-backup-file.sql
+
+# For compressed files
+zcat backups/your-backup-file.sql.gz | head -n 10
+unzip -p backups/your-backup-file.sql.zip | head -n 10
+```
+
+### Database Import Commands
+
+```bash
+# Import SQL file into Docker MySQL container
+docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} < backups/your-backup-file.sql
+
+# Import compressed SQL file
+zcat backups/your-backup-file.sql.gz | docker-compose exec -T db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}
+```
+
+## WP-CLI Integration
+
+- [ ] **Installation**
+  - Provide instructions for installing WP-CLI
+  - Configure Docker to include WP-CLI
+
+- [ ] **Essential Commands**
+  - Document common WP-CLI commands for site management
+  - Include examples for plugin/theme management
+
+- [ ] **Custom Scripts**
+  - Create helper scripts in `./bin` directory
+  - Document usage of these scripts
+
+### WP-CLI Installation
+
+WP-CLI will be available inside the WordPress container. Create a shell script to make it easier to use:
+
+```bash
+# Create bin directory
+mkdir -p bin
+
+# Create wp-cli.sh script
+cat > bin/wp-cli.sh << 'EOF'
+#!/bin/bash
+docker-compose exec wordpress wp "$@"
+EOF
+
+# Make the script executable
+chmod +x bin/wp-cli.sh
+```
+
+### Essential WP-CLI Commands
+
+```bash
+# Check WordPress version
+./bin/wp-cli.sh core version
+
+# Install a plugin
+./bin/wp-cli.sh plugin install plugin-name --activate
+
+# Update all plugins
+./bin/wp-cli.sh plugin update --all
+
+# List installed themes
+./bin/wp-cli.sh theme list
+
+# Create a new user
+./bin/wp-cli.sh user create username email@example.com --role=administrator
+```
+
+## VSCode Tasks Configuration
+
+- [ ] **Task Configuration**
+  - Create `.vscode/tasks.json` file
+  - Configure tasks for common operations
+
+- [ ] **Docker Tasks**
+  - Start/stop Docker environment
+  - View Docker logs
+
+- [ ] **WordPress Tasks**
+  - Run WP-CLI commands
+  - Manage plugins/themes
+
+Example tasks.json:
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start WordPress Environment",
+      "type": "shell",
+      "command": "docker-compose up -d",
+      "detail": "Starts WordPress containers in detached mode (background)",
+      "problemMatcher": []
+    },
+    {
+      "label": "Stop WordPress Environment",
+      "type": "shell",
+      "command": "docker-compose down",
+      "problemMatcher": []
+    },
+    {
+      "label": "View WordPress Logs",
+      "type": "shell",
+      "command": "docker-compose logs -f wordpress",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open WordPress Site",
+      "type": "shell",
+      "command": "open http://localhost:${WP_PORT:-8080}",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open phpMyAdmin",
+      "type": "shell",
+      "command": "open http://localhost:${PMA_PORT:-8081}",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run WP-CLI Command",
+      "type": "shell",
+      "command": "./bin/wp-cli.sh",
+      "args": [
+        {
+          "description": "WP-CLI Command",
+          "value": "core version"
+        }
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
+```
+
+## Testing & Verification
+
+- [ ] **Environment Check**
+  - Verify Docker containers are running
+  - Check database connection
+
+- [ ] **WordPress Check**
+  - Verify WordPress is accessible at http://localhost:8080
+  - Confirm admin login works
+
+- [ ] **Functionality Check**
+  - Test basic WordPress functionality
+  - Verify file permissions and ownership
+
+### Starting the Environment
+
+```bash
+# Start Docker containers in detached mode (background)
+# The -d flag ensures containers run in the background and control returns to terminal immediately
+docker-compose up -d
+
+# This command will start all services and pull any required images in the background
+# You can continue working in the terminal while images are being downloaded
+```
+
+### Environment Check Commands
+
+```bash
+# Check if Docker containers are running
+docker-compose ps
+
+# Check database connection
+docker-compose exec db mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e "SHOW DATABASES;"
+```
+
+### WordPress Check
+
+The AI agent should guide the user to:
+
+1. Open http://localhost:8080 in a browser
+2. Verify the WordPress site loads correctly
+3. Access the admin area at http://localhost:8080/wp-admin
+4. Log in with the configured credentials
+
+## Troubleshooting
+
+Common issues and their solutions will be documented here as they are encountered.
+
+### Docker Issues
+
+- **Port conflicts**: If ports 8080 or 8081 are already in use, edit the .env file to use different ports.
+  ```
+  WP_PORT=8090
+  PMA_PORT=8091
+  ```
+
+- **Container startup failures**: Check Docker logs for specific error messages.
+  ```bash
+  docker-compose logs
+  ```
+
+### WordPress Issues
+
+- **Database connection errors**: Verify database credentials in .env file and wp-config.php.
+
+- **File permission problems**: Reset permissions with:
+  ```bash
+  chmod -R 755 src
+  find src -type d -exec chmod 755 {} \;
+  find src -type f -exec chmod 644 {} \;
+  ```
+
+### Development Environment Issues
+
+- **VSCode configuration problems**: Ensure the .vscode directory and tasks.json file are properly configured.
+
+- **Git integration issues**: Make sure .gitignore is properly set up to exclude sensitive files.
+  ```
+  # WordPress core files to ignore
+  wp-config.php
+  wp-content/uploads/
+  wp-content/upgrade/
+  
+  # Environment files
+  .env
+  
+  # Database backups
+  backups/*.sql
+  backups/*.sql.gz
+  backups/*.sql.zip
+  
+  # Docker volumes
+  db_data/
+  ```
+
+---
+
+*Note: This guide is part of the WordPress AI Workspace Template. As you work through these steps, mark them as completed and document any issues or improvements to help future users.*

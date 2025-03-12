@@ -1,0 +1,163 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start WordPress Environment",
+			"type": "shell",
+			"command": "docker-compose up -d",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Start the WordPress Docker environment"
+		},
+		{
+			"label": "Stop WordPress Environment",
+			"type": "shell",
+			"command": "docker-compose down",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Stop the WordPress Docker environment"
+		},
+		{
+			"label": "Restart WordPress Environment",
+			"type": "shell",
+			"command": "docker-compose restart",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Restart the WordPress Docker environment"
+		},
+		{
+			"label": "View WordPress Logs",
+			"type": "shell",
+			"command": "docker-compose logs -f wordpress",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from the WordPress container"
+		},
+		{
+			"label": "View Database Logs",
+			"type": "shell",
+			"command": "docker-compose logs -f db",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from the database container"
+		},
+		{
+			"label": "Open WordPress Site",
+			"type": "shell",
+			"command": "xdg-open http://localhost:${env:WP_PORT:-8080} || open http://localhost:${env:WP_PORT:-8080} || start http://localhost:${env:WP_PORT:-8080}",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent"
+			},
+			"detail": "Open the WordPress site in your default browser"
+		},
+		{
+			"label": "Open phpMyAdmin",
+			"type": "shell",
+			"command": "xdg-open http://localhost:${env:PMA_PORT:-8081} || open http://localhost:${env:PMA_PORT:-8081} || start http://localhost:${env:PMA_PORT:-8081}",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent"
+			},
+			"detail": "Open phpMyAdmin in your default browser"
+		},
+		{
+			"label": "Run WP-CLI Command",
+			"type": "shell",
+			"command": "./bin/wp-cli.sh",
+			"args": [
+				{
+					"description": "WP-CLI Command",
+					"value": "core version"
+				}
+			],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Run a WP-CLI command in the WordPress container"
+		},
+		{
+			"label": "Install WordPress Plugin",
+			"type": "shell",
+			"command": "./bin/wp-cli.sh plugin install",
+			"args": [
+				{
+					"description": "Plugin Name or URL",
+					"value": ""
+				},
+				"--activate"
+			],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Install and activate a WordPress plugin"
+		},
+		{
+			"label": "Update WordPress Core",
+			"type": "shell",
+			"command": "./bin/wp-cli.sh core update",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Update WordPress core to the latest version"
+		},
+		{
+			"label": "Update All Plugins",
+			"type": "shell",
+			"command": "./bin/wp-cli.sh plugin update --all",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Update all WordPress plugins to their latest versions"
+		},
+		{
+			"label": "Export Database",
+			"type": "shell",
+			"command": "docker-compose exec db mysqldump -u${env:MYSQL_USER:-wordpress} -p${env:MYSQL_PASSWORD:-wordpress} ${env:MYSQL_DATABASE:-wordpress} > backups/$(date +%Y-%m-%d)-local-backup.sql",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Export the WordPress database to a SQL file in the backups directory"
+		},
+		{
+			"label": "Import Database",
+			"type": "shell",
+			"command": "echo 'Select a backup file to import' && ls -la backups/*.sql && echo 'Run: docker-compose exec -T db mysql -u${env:MYSQL_USER:-wordpress} -p${env:MYSQL_PASSWORD:-wordpress} ${env:MYSQL_DATABASE:-wordpress} < backups/your-backup-file.sql'",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "List available database backups and show import command"
+		}
+	]
+}
