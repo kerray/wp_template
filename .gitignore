@@ -32,6 +32,8 @@ src/wp-content/backup-db/
 src/wp-content/cache/
 src/wp-content/backups/
 src/.htaccess
+src/wp-content/wp-defender-secrets.php
+src/wp-content/.defender-curiosity-quarantine
 
 # Environment files
 .env
@@ -46,3 +48,54 @@ backups/*.tar.gz
 
 # Docker volumes
 db_data/
+
+# WordPress resized images
+*-[0-9]*x[0-9]*.jpg
+*-[0-9]*x[0-9]*.jpeg
+*-[0-9]*x[0-9]*.png
+*-[0-9]*x[0-9]*.gif
+*-[0-9]*x[0-9]*.webp
+*-scaled.jpg
+*-scaled.jpeg
+*-scaled.png
+*-rotated.jpg
+*-rotated.jpeg
+*-rotated.png
+
+# WordPress temporary files
+*.tmp
+*_temp
+*.temp
+src/www/tmp/
+src/www/.htaccess_temp
+
+# WordPress cache
+src/www/wp-content/cache/
+src/www/wp-content/w3tc-config/
+src/www/wp-content/advanced-cache.php
+src/www/wp-content/object-cache.php
+
+# WordPress backups
+src/www/wp-content/updraft/
+src/www/wp-content/upgrade/
+src/www/wp-content/backup*/
+src/www/wp-content/uploads/snapshot-backups/
+src/www/wp-content/uploads/iw-backup/
+
+# Archive files
+*.zip
+*.gz
+*.tar
+*.rar
+src/www/html.zip
+
+# Other WordPress generated files
+src/www/wp-content/debug.log
+src/www/wp-content/uploads/wc-logs/
+src/www/wp-content/uploads/woocommerce_uploads/
+src/www/wp-content/upgrade-temp-backup/
+
+# Session files
+src/session/
+
+wp-sites.json

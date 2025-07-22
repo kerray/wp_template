@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "claudeus-wp-mcp": {
+      "command": "node",
+      "args": [
+        "../scripts/Roo-Code/MCP/claudeus-wp-mcp/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [],
+      "description": "https://github.com/deus-h/claudeus-wp-mcp"
+    }
+  }
+}

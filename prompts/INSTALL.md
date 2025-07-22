@@ -1,4 +1,4 @@
-# WordPress AI Workspace Installation Guide
+# WordPress AI Workspace Installation Protocol
 
 > Status: Template Development - Last Updated: March 12, 2025
 
@@ -182,6 +182,7 @@ PMA_PORT=8081
 - [ ] **File Structure Organization**
   - Ensure proper permissions on WordPress files
   - Set up .gitignore for WordPress development
+  - Configure .htaccess file for proper URL rewriting
 
 ### New Installation Commands
 
@@ -229,6 +230,41 @@ User: [Provides information]
 
 AI: Thank you! I'll now check if the necessary tools are installed and proceed with importing your site.
 ```
+
+### .htaccess Configuration
+
+The `.htaccess` file is essential for WordPress URL rewriting but should not be committed to Git. Create it with the following default content for WordPress running in Docker with Apache:
+
+```
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+```
+
+Create this file in the `./src` directory after WordPress installation:
+
+```bash
+# Create .htaccess file with proper WordPress rewrite rules
+cat > src/.htaccess << 'EOF'
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+EOF
+```
+
+Note: Ensure `.htaccess` is added to your `.gitignore` file to prevent it from being committed to version control.
 
 ## Database & Backup Management
 
@@ -481,6 +517,7 @@ Common issues and their solutions will be documented here as they are encountere
 - **Git integration issues**: Make sure .gitignore is properly set up to exclude sensitive files.
   ```
   # WordPress core files to ignore
+  .htaccess
   wp-config.php
   wp-content/uploads/
   wp-content/upgrade/
