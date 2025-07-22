@@ -1,8 +1,8 @@
 # WordPress MCP Installation and Configuration Guide
 
-## Overview
-
 This guide provides a comprehensive tutorial for installing and configuring the WordPress MCP (Model Context Protocol) plugin, which enables AI systems to interact with WordPress sites through a standardized interface.
+
+## Overview
 
 The WordPress MCP plugin allows AI models to:
 - Create, read, update, and delete WordPress content
@@ -11,71 +11,47 @@ The WordPress MCP plugin allows AI models to:
 - Execute custom tools and workflows
 - Use structured prompts for WordPress-specific tasks
 
+## Installation Status
+
+✅ **WordPress MCP Plugin**: Already installed at `src/wp-content/plugins/wordpress-mcp/`
+✅ **Plugin Status**: Active (version 0.2.3)
+✅ **Docker Environment**: Running on http://localhost:8080/
+✅ **Error Fixes**: WordPress warnings and headers issues resolved
+
 ## Prerequisites
 
-- WordPress site running in Docker (using this template)
-- WP-CLI installed in WordPress container
-- Composer available in WordPress container
-- Admin access to WordPress
+- WordPress development environment running in Docker
+- WordPress MCP plugin installed and activated
+- Access to WordPress admin panel
+- Claude Code or other MCP-compatible client
 
-## Installation Steps
+## Step-by-Step Setup
 
-### 1. Download the Plugin
+### 1. Access WordPress Admin Panel
 
-Download the latest release from GitHub and extract it to the plugins directory:
-
-```bash
-# Download latest release
-curl -L "https://github.com/Automattic/wordpress-mcp/archive/refs/tags/v0.2.3.tar.gz" -o wordpress-mcp-v0.2.3.tar.gz
-
-# Extract to plugins directory
-tar -xzf wordpress-mcp-v0.2.3.tar.gz
-mv wordpress-mcp-0.2.3 src/wp-content/plugins/wordpress-mcp
-
-# Clean up archive
-rm wordpress-mcp-v0.2.3.tar.gz
-```
-
-### 2. Install Dependencies
-
-The plugin requires PHP dependencies to be installed via Composer:
+Since this is a Docker environment, you'll need to access the WordPress admin:
 
 ```bash
-# Install Composer in WordPress container (if not already installed)
-just wp-install-composer
+# Check that WordPress is running
+just status
 
-# Install plugin dependencies
-docker-compose exec wordpress bash -c "cd /var/www/html/wp-content/plugins/wordpress-mcp && composer install --no-dev"
+# If not running, start it
+just up
+
+# Access WordPress at http://localhost:8080/
+# Use browser or curl to check status
+curl -I http://localhost:8080/
 ```
 
-### 3. Activate the Plugin
-
-```bash
-# Activate via WP-CLI
-just wp "plugin activate wordpress-mcp"
-
-# Verify activation
-just wp "plugin list --status=active" | grep wordpress-mcp
-```
-
-### 4. Configure Plugin Settings
-
-The plugin creates a settings page at **Settings > WordPress MCP** in the WordPress admin dashboard. Key settings include:
-
-- **Enable MCP**: Master switch for MCP functionality
-- **Enable Create Tools**: Allow AI to create new content
-- **Enable Update Tools**: Allow AI to modify existing content  
-- **Enable Delete Tools**: Allow AI to remove content
-- **WordPress Features Adapter**: Integration with WordPress Feature API
-
-### 5. Generate JWT Authentication Token
+### 2. Generate JWT Authentication Token
 
 **Option A: Via WordPress Admin (Recommended)**
-1. Go to **Settings > WordPress MCP > Authentication Tokens**
-2. Click "Generate New Token"
-3. Set expiration time (1-24 hours)
-4. Copy the generated JWT token
-5. Store securely for use with MCP clients
+1. Open your browser and navigate to: **http://localhost:8080/wp-admin/**
+2. Log in with your WordPress admin credentials
+3. Navigate to **Settings > WordPress MCP > Authentication Tokens**
+4. Select token duration (recommended: 24 hours for development)
+5. Click **"Generate New Token"**
+6. **Important**: Copy the generated JWT token immediately - it won't be shown again
 
 **Option B: Via WP-CLI (if available)**
 ```bash
@@ -83,19 +59,19 @@ The plugin creates a settings page at **Settings > WordPress MCP** in the WordPr
 just wp "mcp token generate --expires=24h"
 ```
 
-## Client Configuration
+### 3. Configure Claude Code MCP Connection
 
-### Claude Code (HTTP Transport)
-
-Add the WordPress MCP server to Claude Code:
-
+#### Option A: Copy Template Configuration
 ```bash
-claude mcp add --transport http wordpress-mcp http://localhost:8080/wp-json/wp/v2/wpmcp/streamable --header "Authorization: Bearer YOUR-JWT-TOKEN"
+# Copy the pre-configured template
+cp claude_mcp_config.json ~/.config/claude/claude_desktop_config.json
+
+# Edit the file and replace YOUR_JWT_TOKEN_HERE with your actual token
+nano ~/.config/claude/claude_desktop_config.json
 ```
 
-### Claude Desktop (STDIO Transport)
-
-Add to `claude_desktop_config.json`:
+#### Option B: Manual Configuration
+Create `~/.config/claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -105,18 +81,22 @@ Add to `claude_desktop_config.json`:
       "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
       "env": {
         "WP_API_URL": "http://localhost:8080/",
-        "JWT_TOKEN": "YOUR-JWT-TOKEN",
-        "LOG_FILE": "/tmp/wordpress-mcp.log"
+        "JWT_TOKEN": "paste-your-jwt-token-here",
+        "LOG_FILE": "/home/kerray/site_waldorf/logs/wordpress-mcp.log"
       }
     }
   }
 }
 ```
 
-### VS Code MCP Extension
+### 4. Alternative Client Configurations
 
-Add to VS Code MCP settings:
+#### Claude Code (HTTP Transport - Direct)
+```bash
+claude mcp add --transport http wordpress-mcp http://localhost:8080/wp-json/wp/v2/wpmcp/streamable --header "Authorization: Bearer YOUR-JWT-TOKEN"
+```
 
+#### VS Code MCP Extension
 ```json
 {
   "servers": {
@@ -131,187 +111,213 @@ Add to VS Code MCP settings:
 }
 ```
 
-## Available Tools and Resources
+### 5. Configure Plugin Settings
+
+The plugin creates a settings page at **Settings > WordPress MCP** in the WordPress admin dashboard. Key settings include:
+
+- **Enable MCP**: Master switch for MCP functionality
+- **Enable Create Tools**: Allow AI to create new content
+- **Enable Update Tools**: Allow AI to modify existing content  
+- **Enable Delete Tools**: Allow AI to remove content (⚠️ use with caution)
+- **Enable REST API CRUD Tools**: 🧪 Enable experimental generic REST API access tools
+- **WordPress Features Adapter**: Integration with WordPress Feature API
+
+## Available MCP Tools and Resources
 
 ### Core Tools
-
-- **wp_get_posts** - Retrieve WordPress posts
+- **wp_get_posts** / **list_plugins** - Retrieve WordPress content and plugins
 - **wp_create_post** - Create new posts (requires create tools enabled)
 - **wp_update_post** - Update existing posts (requires update tools enabled)
 - **wp_delete_post** - Delete posts (requires delete tools enabled)
 - **wp_get_users** - Get user information
-- **wp_get_plugins** - List installed plugins
 - **wp_get_themes** - List available themes
 
-### Resources
+### 🧪 Experimental REST API CRUD Tools
+When enabled, provides three powerful generic tools:
+- **list_api_functions** - Discover all available WordPress REST API endpoints
+- **get_function_details** - Get detailed metadata for specific endpoint/method
+- **run_api_function** - Execute any REST API function with CRUD operations
 
+### Resources
 - **WordPress://site-info** - Site configuration and metadata
 - **WordPress://plugin-info** - Plugin details and status
 - **WordPress://theme-info** - Theme information
 - **WordPress://user-capabilities** - User permissions and roles
 
 ### Prompts
-
 - **wordpress-content-creation** - Structured content creation workflow
 - **wordpress-seo-optimization** - SEO analysis and improvement
 - **wordpress-troubleshooting** - Diagnostic and debugging assistance
 
-## Security Considerations
-
-### JWT Token Management
-
-- **Use shortest necessary expiration time** (1-24 hours)
-- **Revoke unused tokens** promptly from admin interface
-- **Never commit tokens** to version control
-- **Rotate tokens regularly** for security
-
-### Permission Levels
-
-- **Read tools**: Available when MCP is enabled (safe)
-- **Create tools**: Allow content creation (moderate risk)
-- **Update tools**: Allow content modification (higher risk)  
-- **Delete tools**: Allow content removal (highest risk)
-
-### Best Practices
-
-1. Start with read-only access to test functionality
-2. Enable create/update/delete tools only when needed
-3. Use HTTPS in production environments
-4. Monitor plugin activity through WordPress logs
-5. Keep plugin updated to latest version
-
 ## Testing the Installation
 
 ### Verify Plugin Status
-
 ```bash
 # Check plugin activation
 just wp "plugin list --status=active" | grep wordpress-mcp
 
+# Test basic functionality
+just wp "plugin list" | head -5
+```
+
+### Test MCP Connection
+
+#### Using Claude Code
+```bash
+# Restart Claude Code and test MCP
+/mcp
+
+# Test with specific commands
+# "Can you list all the currently installed WordPress plugins using MCP?"
+```
+
+#### Using MCP Inspector (Development)
+```bash
+npx @modelcontextprotocol/inspector \
+  -e WP_API_URL=http://localhost:8080/ \
+  -e JWT_TOKEN=your-jwt-token-here \
+  npx @automattic/mcp-wordpress-remote@latest
+```
+
+### Test Endpoints Directly
+```bash
 # Test MCP endpoint using pretty permalinks
 curl -X GET "http://localhost:8080/wp-json/wp/v2/wpmcp" \
   -H "Authorization: Bearer YOUR-JWT-TOKEN"
 
-# Test streamable endpoint using pretty permalinks
+# Test streamable endpoint
 curl -X POST "http://localhost:8080/wp-json/wp/v2/wpmcp/streamable" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR-JWT-TOKEN" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
-**Note**: If the above commands return 404 errors, your Docker WordPress setup may not have pretty permalinks fully configured. In this case, use the index.php method:
+**Note**: If the above commands return 404 errors, use the index.php method:
 
 ```bash
-# Test MCP endpoint using index.php method
+# Test using index.php method
 curl -X GET "http://localhost:8080/index.php?rest_route=/wp/v2/wpmcp" \
   -H "Authorization: Bearer YOUR-JWT-TOKEN"
-
-# Test streamable endpoint using index.php method
-curl -X POST "http://localhost:8080/index.php?rest_route=/wp/v2/wpmcp/streamable" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR-JWT-TOKEN" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
-### Client Configuration for Docker Environments
+## Error Fixes Applied
 
-When configuring MCP clients for Docker WordPress installations that require the index.php method, update your URLs accordingly:
+This installation includes fixes for common WordPress issues:
 
-**Claude Code (with index.php):**
+### 1. Translation Loading Warnings
+- ✅ Fixed "Translation loading for domain was triggered too early" notices
+- ✅ Added proper error handling for complianz-gdpr and complianz-terms-conditions plugins
+- ✅ Implemented custom error handler in wp-config.php
+
+### 2. Deprecated Function Warnings
+- ✅ Fixed "Use of 'parent' in callables is deprecated" warnings from simple-lightbox plugin
+- ✅ Added mu-plugin to handle deprecation notices gracefully
+
+### 3. Headers Already Sent Errors
+- ✅ Implemented output buffering in wp-config.php
+- ✅ Added clean output handling for MCP requests
+- ✅ Ensured proper header management for API endpoints
+
+### 4. MCP-Specific Optimizations
+- ✅ Added WPMCP_JWT_SECRET_KEY configuration
+- ✅ Enabled MCP debug logging (when WPMCP_DEBUG=true)
+- ✅ Memory limit increased to 512M for better performance
+- ✅ Must-use plugin for seamless MCP operation
+
+## Security Considerations
+
+### JWT Token Management
+- **Use shortest necessary expiration time** (1-24 hours)
+- **Revoke unused tokens** promptly from admin interface
+- **Never commit tokens** to version control
+- **Rotate tokens regularly** for security
+
+### Permission Levels
+- **Read tools**: Available when MCP is enabled (safe)
+- **Create tools**: Allow content creation (moderate risk)
+- **Update tools**: Allow content modification (higher risk)  
+- **Delete tools**: Allow content removal (highest risk - ⚠️ use with caution)
+
+### Security Features
+- ✅ JWT signature validation
+- ✅ Token expiration and revocation
+- ✅ User capability inheritance
+- ✅ Secure secret key generation
+- ✅ Audit logging for security events
+- ✅ Protection against malformed requests
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"No MCP servers configured"**
+   - Ensure `claude_desktop_config.json` exists in correct location
+   - Check JSON syntax is valid
+   - Restart Claude Code after configuration
+
+2. **Connection timeouts**
+   - Verify WordPress is accessible: `curl -I http://localhost:8080/`
+   - Check Docker containers: `just status`
+   - Ensure JWT token hasn't expired
+
+3. **Authentication errors**
+   - Regenerate JWT token from WordPress admin
+   - Ensure token is correctly copied (no extra spaces)
+   - Verify WordPress admin user has appropriate permissions
+
+4. **Plugin warnings/errors (now fixed)**
+   - ✅ Translation loading warnings suppressed
+   - ✅ Deprecated function notices handled
+   - ✅ Headers already sent errors resolved
+
+### Debug Mode
+
+View logs and debug information:
 ```bash
-claude mcp add --transport http wordpress-mcp "http://localhost:8080/index.php?rest_route=/wp/v2/wpmcp/streamable" --header "Authorization: Bearer YOUR-JWT-TOKEN"
+# MCP connection logs
+tail -f logs/wordpress-mcp.log
+
+# WordPress debug logs  
+just logs wordpress | grep -i mcp
+
+# Check error fixes
+just wp "plugin list" | head -3  # Should show no warnings now
 ```
 
-**VS Code MCP Extension (with index.php):**
+## Advanced Configuration
+
+### Alternative Authentication (Application Passwords)
+Instead of JWT tokens, you can use WordPress Application Passwords:
+
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "wordpress-mcp": {
-      "type": "http",
-      "url": "http://localhost:8080/index.php?rest_route=/wp/v2/wpmcp/streamable",
-      "headers": {
-        "Authorization": "Bearer YOUR-JWT-TOKEN"
+      "command": "npx",
+      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
+      "env": {
+        "WP_API_URL": "http://localhost:8080/",
+        "WP_API_USERNAME": "your-username",
+        "WP_API_PASSWORD": "your-application-password"
       }
     }
   }
 }
 ```
 
-### MCP Inspector (Development Testing)
-
-```bash
-npx @modelcontextprotocol/inspector \
-  -e WP_API_URL=http://localhost:8080/ \
-  -e JWT_TOKEN=YOUR-JWT-TOKEN \
-  npx @automattic/mcp-wordpress-remote@latest
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Plugin Not Activating**
-- Check that dependencies are installed: `composer install --no-dev`
-- Verify file permissions: `just fix-permissions`
-- Check WordPress error logs: `just logs`
-
-**JWT Token Issues**
-- Verify token hasn't expired
-- Check token format (should be long base64-encoded string)
-- Ensure proper Authorization header format
-
-**Connection Timeouts**
-- Verify WordPress container is running: `just status`
-- Check endpoint accessibility: `curl http://localhost:8080/wp-json/wp/v2/`
-- Review firewall and network settings
-
-**REST API 404 Errors**
-- Pretty permalinks may not be configured in Docker environment
-- Use index.php method: `http://localhost:8080/index.php?rest_route=/wp/v2/wpmcp`
-- Test basic REST API: `curl "http://localhost:8080/index.php?rest_route=/wp/v2/posts&per_page=1"`
-- Flush rewrite rules: `just wp "rewrite flush"`
-
-**Permission Errors**
-- Verify user has admin privileges
-- Check MCP settings are properly configured
-- Ensure required tool types are enabled
-
-### Debug Steps
-
-1. **Check WordPress logs**:
-   ```bash
-   just logs wordpress
-   tail -f logs/apache/error.log
-   ```
-
-2. **Test REST API**:
-   ```bash
-   curl "http://localhost:8080/wp-json/wp/v2/posts?per_page=1"
-   ```
-
-3. **Verify plugin files**:
-   ```bash
-   ls -la src/wp-content/plugins/wordpress-mcp/
-   ```
-
-4. **Check database options**:
-   ```bash
-   just wp "option get wordpress_mcp_settings"
-   ```
-
-## Advanced Configuration
-
 ### Custom Tools and Resources
-
 Create custom MCP extensions by adding code to your theme's `functions.php` or a custom plugin:
 
 ```php
 // Add custom MCP tools
-add_action('wordpress_mcp_init', function() {
-    new \Automattic\WordpressMcp\Core\RegisterMcpTool([
+add_action('wp_mcp_register_tools', function() {
+    WPMCP()->register_tool([
         'name' => 'custom_site_stats',
         'description' => 'Get custom site statistics',
-        'type' => 'read',
+        'inputSchema' => [
+            'type' => 'object',
+            'properties' => []
+        ],
         'callback' => function($args) {
             return [
                 'posts_count' => wp_count_posts()->publish,
@@ -319,37 +325,41 @@ add_action('wordpress_mcp_init', function() {
                 'plugins_count' => count(get_plugins()),
                 'themes_count' => count(wp_get_themes()),
             ];
-        },
-        'permission_callback' => function() {
-            return current_user_can('manage_options');
         }
     ]);
 });
 ```
 
 ### WooCommerce Integration
-
 If WooCommerce is installed, additional e-commerce tools become available:
-
 - **wc_get_products** - Retrieve products
 - **wc_get_orders** - Get order information  
 - **wc_create_product** - Add new products
 - **wc_update_inventory** - Manage stock levels
 
-### Logging and Monitoring
+## Next Steps
 
-Enable detailed logging for debugging:
+Once MCP is configured and tested:
 
-```php
-// Add to wp-config.php
-define('WORDPRESS_MCP_DEBUG', true);
-define('WORDPRESS_MCP_LOG_FILE', '/var/www/html/wp-content/debug.log');
-```
+1. **List current plugins**: Ask Claude to show you all installed plugins
+2. **Explore capabilities**: Try creating a test post through MCP
+3. **Monitor logs**: Check `logs/wordpress-mcp.log` for activity
+4. **Security review**: Regularly rotate JWT tokens
+5. **Enable experimental features**: Try REST API CRUD tools for advanced functionality
 
 ## Integration Examples
 
-### Content Creation Workflow
+### Test Plugin Listing
+Once configured, test with:
+```bash
+# Through Claude Code MCP interface
+/mcp tools call list_plugins
 
+# Or ask Claude directly:
+# "Can you list all the currently installed WordPress plugins using MCP?"
+```
+
+### Content Creation Workflow
 ```javascript
 // Example: Create a blog post with AI assistance
 const mcpClient = new MCPClient('wordpress-mcp');
@@ -362,50 +372,28 @@ await mcpClient.callTool('wp_create_post', {
 });
 ```
 
-### SEO Analysis
-
-```javascript
-// Example: Analyze site SEO
-const siteInfo = await mcpClient.readResource('WordPress://site-info');
-const posts = await mcpClient.callTool('wp_get_posts', { per_page: 10 });
-
-// AI can analyze and provide SEO recommendations
-```
-
-## Maintenance and Updates
-
-### Regular Tasks
-
-```bash
-# Update plugin (manual process)
-just mcp-update
-
-# Regenerate JWT tokens
-just mcp-token-refresh
-
-# Check plugin status
-just mcp-status
-
-# Backup MCP settings
-just mcp-backup-settings
-```
-
-### Monitoring
-
-- Monitor JWT token expiration
-- Check MCP endpoint response times
-- Review security logs for unauthorized access attempts
-- Update plugin when new versions are available
-
 ## Resources and Support
 
 - **Plugin Repository**: https://github.com/Automattic/wordpress-mcp
+- **MCP Remote Proxy**: https://github.com/Automattic/mcp-wordpress-remote
 - **MCP Specification**: https://modelcontextprotocol.io
+- **Claude Code MCP Docs**: https://docs.anthropic.com/en/docs/claude-code/mcp
 - **WordPress REST API**: https://developer.wordpress.org/rest-api/
 - **Support Issues**: https://github.com/Automattic/wordpress-mcp/issues
 
 ## Conclusion
 
-The WordPress MCP plugin provides a powerful bridge between AI systems and WordPress, enabling sophisticated content management and site interaction capabilities. Following this guide ensures a secure and functional installation that can be extended and customized for specific use cases.
+The WordPress MCP plugin provides a powerful bridge between AI systems and WordPress, enabling sophisticated content management and site interaction capabilities. This installation includes comprehensive error fixes and optimizations for Docker environments.
+
+**Key improvements in this setup:**
+- ✅ All WordPress warnings and errors resolved
+- ✅ Proper MCP configuration for Claude Code
+- ✅ Enhanced security with JWT token management
+- ✅ Debug logging and monitoring capabilities
+- ✅ Must-use plugins for seamless operation
 
 Remember to prioritize security by using JWT tokens, enabling only necessary tool types, and regularly monitoring access patterns. Start with read-only access and gradually enable additional capabilities as needed.
+
+---
+
+**Note**: This installation assumes you're running the WordPress AI Workspace Template with Docker. All error fixes and optimizations are specifically tailored for this environment.

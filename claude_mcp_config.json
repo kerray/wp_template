@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "wordpress-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@automattic/mcp-wordpress-remote@latest"
+      ],
+      "env": {
+        "WP_API_URL": "http://localhost:8080/",
+        "JWT_TOKEN": "YOUR_JWT_TOKEN_HERE",
+        "LOG_FILE": "logs/wordpress-mcp.log"
+      }
+    }
+  }
+}

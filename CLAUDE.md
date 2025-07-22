@@ -108,8 +108,14 @@ just open-site
 # Open phpMyAdmin in browser
 just open-phpmyadmin
 
-# Fix file permissions
+# Fix file permissions (local files only)
 just fix-permissions
+
+# Fix WordPress update permissions in Docker container
+just fix-update-permissions
+
+# Fix all permissions (local + Docker container)
+just fix-all-permissions
 
 # Show project information
 just info
@@ -250,6 +256,93 @@ Contains AI agent instructions emphasizing:
 
 ### VSCode Integration
 Pre-configured tasks for all common WordPress development operations including Docker management, WP-CLI commands, and database operations.
+
+## WordPress MCP (Model Context Protocol) Integration
+
+This WordPress installation includes the [WordPress MCP Plugin](https://github.com/Automattic/wordpress-mcp) (v0.2.3) which enables AI agents to interact with WordPress through standardized MCP interfaces.
+
+### MCP Plugin Status
+- **Plugin Location**: `src/wp-content/plugins/wordpress-mcp/`
+- **Status**: Active
+- **Version**: 0.2.3
+
+### Available MCP Features
+- 🔄 **Dual Transport Protocols**: STDIO and HTTP-based (Streamable) transports
+- 🔐 **JWT Authentication**: Secure token-based authentication with management UI
+- 🎛️ **Admin Interface**: React-based token management at `Settings > WordPress MCP`
+- 🤖 **AI-Friendly APIs**: JSON-RPC 2.0 compliant endpoints for AI integration
+- 🧪 **Experimental REST API CRUD Tools**: Generic tools for any WordPress REST API endpoint
+
+### MCP Endpoints
+- **STDIO Transport**: `/wp/v2/wpmcp` (WordPress-style format)
+- **Streamable Transport**: `/wp/v2/wpmcp/streamable` (JSON-RPC 2.0 format)
+
+### Claude Code MCP Configuration
+
+To connect Claude Code to this WordPress MCP server:
+
+1. **Generate JWT Token** (manual step):
+   - Access WordPress admin at http://localhost:8080/wp-admin/
+   - Navigate to `Settings > WordPress MCP > Authentication Tokens`
+   - Select token duration (1-24 hours)
+   - Click "Generate New Token"
+   - Copy the generated JWT token
+
+2. **Configure Claude Code**:
+   ```bash
+   # Copy the template configuration
+   cp claude_mcp_config.json ~/.config/claude/claude_desktop_config.json
+   
+   # Edit the configuration file and replace YOUR_JWT_TOKEN_HERE with your actual JWT token
+   # The configuration points to: http://localhost:8080/
+   ```
+
+3. **Restart Claude Code** to load the MCP configuration
+
+### MCP Configuration Template
+```json
+{
+  "mcpServers": {
+    "wordpress-mcp": {
+      "command": "npx",
+      "args": ["-y", "@automattic/mcp-wordpress-remote@latest"],
+      "env": {
+        "WP_API_URL": "http://localhost:8080/",
+        "JWT_TOKEN": "YOUR_JWT_TOKEN_HERE",
+        "LOG_FILE": "/home/kerray/site_waldorf/logs/wordpress-mcp.log"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+Once configured, the following WordPress operations become available through MCP:
+- **Plugin Management**: List, install, activate, deactivate plugins
+- **Theme Management**: List, install, activate themes
+- **Post/Page Management**: Create, read, update, delete content
+- **User Management**: List, create, update users
+- **Media Management**: Upload, list, manage media files
+- **Site Information**: Get WordPress version, settings, configuration
+
+### Testing MCP Connection
+After configuration, test the connection with:
+```bash
+# Using Claude Code's MCP interface
+/mcp
+
+# Or test with MCP Inspector (if available)
+npx @modelcontextprotocol/inspector \
+  -e WP_API_URL=http://localhost:8080/ \
+  -e JWT_TOKEN=your-jwt-token-here \
+  npx @automattic/mcp-wordpress-remote@latest
+```
+
+### Security Notes
+- JWT tokens expire automatically (1-24 hours)
+- Tokens inherit the generating user's WordPress capabilities
+- Never commit JWT tokens to repositories
+- Regularly revoke unused tokens through WordPress admin
 
 ## Vibe tools
 vibe-tools is a CLI tool that allows you to interact with AI models and other tools.

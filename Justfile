@@ -307,7 +307,23 @@ fix-permissions:
     chmod -R 755 src
     find src -type d -exec chmod 755 {} \;
     find src -type f -exec chmod 644 {} \;
-    @echo "Permissions fixed!"
+    @echo "Local permissions fixed!"
+
+# Fix WordPress update permissions in Docker container
+fix-update-permissions:
+    @echo "Fixing WordPress update permissions in Docker container..."
+    docker-compose exec wordpress bash -c "chown -R www-data:www-data /var/www/html/wp-content/"
+    docker-compose exec wordpress bash -c "chmod -R 755 /var/www/html/wp-content/"
+    docker-compose exec wordpress bash -c "mkdir -p /var/www/html/wp-content/upgrade && chown www-data:www-data /var/www/html/wp-content/upgrade && chmod 755 /var/www/html/wp-content/upgrade"
+    @echo "WordPress update permissions fixed!"
+    @echo "You can now update plugins and themes from the WordPress admin."
+
+# Fix all permissions (local + Docker container)
+fix-all-permissions:
+    @echo "Fixing all permissions (local files + Docker container)..."
+    just fix-permissions
+    just fix-update-permissions
+    @echo "All permissions fixed!"
 
 # === Information ===
 
