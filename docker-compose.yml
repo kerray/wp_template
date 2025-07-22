@@ -33,6 +33,8 @@ services:
       WORDPRESS_DB_USER: ${MYSQL_USER:-wordpress}
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-wordpress}
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-wordpress}
+      # Table prefix - update when restoring from a nonstandard database
+      WORDPRESS_TABLE_PREFIX: wp_
       # Optional environment variables
       WORDPRESS_DEBUG: ${WP_DEBUG:-false}
       WORDPRESS_CONFIG_EXTRA: |
