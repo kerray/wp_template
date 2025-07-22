@@ -1,12 +1,13 @@
 # WordPress Database Backups
 
-This directory is for storing WordPress database backups.
+This directory is for storing WordPress backups - database and others.
 
 ## Supported Formats
 - SQL files (.sql)
 - Compressed SQL files (.sql.gz, .sql.zip)
-
-Place your database backups in this directory, and the AI agent will help you import them into your local development environment.
+- Files in .zip and .gz
+- 
+Place database and other backups in this directory to have the AI agent will help you import them into your local development environment.
 
 ## Usage
 

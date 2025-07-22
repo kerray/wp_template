@@ -23,6 +23,7 @@ services:
     restart: always
     volumes:
       - ./src:/var/www/html
+      - ./uploads:/var/www/html/wp-content/uploads
       - ./logs/apache:/var/log/apache2
       - ./logs/php:/var/log/php
       # Custom php.ini settings (optional)

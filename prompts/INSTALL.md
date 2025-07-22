@@ -1,10 +1,11 @@
 # WordPress AI Workspace Installation Protocol
 
-> Status: Template Development - Last Updated: March 12, 2025
+> Status: Template Development - Last Updated: July 22, 2025
 
-This guide provides instructions for AI agents to help users set up a WordPress project using this template. As steps are completed, they will be marked and documented, transforming this guide into a verified installation procedure.
+This guide provides instructions for AI agents to help users set up a WordPress project using this template. The project uses [Just](https://github.com/casey/just) as the primary task runner for all operations.
 
 ## Table of Contents
+0. [Prerequisites & Just Installation](#prerequisites)
 1. [Project Information Collection](#project-information)
 2. [Docker Environment Setup](#docker-environment)
 3. [WordPress Installation](#wordpress-installation)
@@ -15,13 +16,79 @@ This guide provides instructions for AI agents to help users set up a WordPress 
 8. [Troubleshooting](#troubleshooting)
 
 ## Progress Tracking
+- [ ] Just task runner installed
 - [ ] Project information collected
 - [ ] Docker environment configured
 - [ ] WordPress installed
 - [ ] Database setup completed
-- [ ] WP-CLI installed and configured
-- [ ] VSCode tasks created
+- [ ] WP-CLI integration confirmed
+- [ ] VSCode tasks configured
 - [ ] Installation tested and verified
+
+## Prerequisites & Just Installation {#prerequisites}
+
+Before starting the WordPress setup, ensure the Just task runner is installed. All project operations use Just for consistency and simplicity.
+
+### Installing Just
+
+**Option 1: Package Managers (Recommended)**
+```bash
+# macOS (Homebrew)
+brew install just
+
+# Ubuntu/Debian
+wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr/gpg' | gpg --dearmor | sudo tee /usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg 1> /dev/null
+echo "deb [arch=all,amd64,arm64,armhf signed-by=/usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg] https://proget.makedeb.org prebuilt-mpr $(lsb_release -cs)" | sudo tee /etc/apt/sources.list.d/prebuilt-mpr.list
+sudo apt update && sudo apt install just
+
+# Arch Linux
+sudo pacman -S just
+
+# Windows (Scoop)
+scoop install just
+
+# Windows (Chocolatey)
+choco install just
+```
+
+**Option 2: Binary Installation**
+```bash
+# Download and install to ~/bin (add ~/bin to PATH if needed)
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
+
+# Or download and install system-wide
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
+```
+
+**Option 3: Cargo (if Rust is installed)**
+```bash
+cargo install just
+```
+
+### Verifying Installation
+```bash
+# Check if Just is installed
+just --version
+
+# Show all available commands for this project
+just --list
+
+# Get help for the project
+just help
+```
+
+### Quick Start After Installation
+Once Just is installed, you can set up the entire WordPress environment with:
+```bash
+# Complete project setup (creates .env, downloads WordPress, sets up directories)
+just setup
+
+# Start the WordPress environment
+just up
+
+# Open WordPress site in browser
+just open-site
+```
 
 ## Project Information
 
@@ -53,15 +120,15 @@ AI: Thank you! I'll use this information to configure your project.
 ## Docker Environment
 
 - [ ] **Docker Compose Configuration**
-  - Create a `docker-compose.yml` file in the project root
+  - Verify `docker-compose.yml` exists in the project root (included with template)
   - Configure services for WordPress and MySQL
   - Include optional PHP-FPM/Nginx configuration
-  - Always use `docker-compose up -d` to start containers in detached mode (background)
+  - Always use `just up` to start containers in detached mode (background)
   - This ensures the terminal isn't blocked while images are pulled and containers start
 
 - [ ] **Environment Variables**
-  - Create a `.env` file template for Docker configuration
-  - Include variables for database credentials, ports, etc.
+  - Create a `.env` file using `just setup-env`
+  - Customize variables for database credentials, ports, etc. if needed
 
 - [ ] **Network Configuration**
   - Configure internal network for container communication
@@ -186,6 +253,17 @@ PMA_PORT=8081
 
 ### New Installation Commands
 
+The template includes a Just recipe that handles WordPress installation:
+
+```bash
+# Download and set up WordPress automatically
+just setup-wp
+
+# Or run full setup (includes .env creation and backups directory)
+just setup
+```
+
+Manual installation (if needed):
 ```bash
 # Create src directory if it doesn't exist
 mkdir -p src
@@ -199,7 +277,7 @@ tar -xzf wordpress.tar.gz -C src --strip-components=1
 # Remove the archive
 rm wordpress.tar.gz
 
-# Set proper permissions
+# Set proper permissions (or use: just fix-permissions)
 chmod -R 755 src
 find src -type d -exec chmod 755 {} \;
 find src -type f -exec chmod 644 {} \;

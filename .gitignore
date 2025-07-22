@@ -44,7 +44,13 @@ src/wp-content/.defender-curiosity-quarantine
 backups/*.sql
 backups/*.sql.gz
 backups/*.sql.zip
-backups/*.tar.gz
+
+# Uploads backups (media files)
+backups/uploads-*.tar.gz
+
+# WordPress uploads directory (media files)
+uploads/
+!uploads/README.md
 
 # Docker volumes
 db_data/

@@ -6,76 +6,150 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Docker-based WordPress development environment template designed for AI agents (Cline, Roo, Claude Code) to set up and manage WordPress projects efficiently.
 
+## Task Runner: Just
+
+This project uses [Just](https://github.com/casey/just) as the primary task runner for all operations. Just provides a simple, consistent interface for all project tasks.
+
+### Installation
+```bash
+# Install Just (if not already installed)
+# On macOS:
+brew install just
+
+# On Ubuntu/Debian:
+wget -qO - 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr/gpg' | gpg --dearmor | sudo tee /usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg 1> /dev/null
+echo "deb [arch=all,amd64,arm64,armhf signed-by=/usr/share/keyrings/prebuilt-mpr-archive-keyring.gpg] https://proget.makedeb.org prebuilt-mpr $(lsb_release -cs)" | sudo tee /etc/apt/sources.list.d/prebuilt-mpr.list
+sudo apt update && sudo apt install just
+
+# Or download binary from GitHub releases
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
+```
+
+### Quick Start
+```bash
+# Show all available commands
+just
+
+# Initialize new project
+just setup
+
+# Start WordPress environment
+just up
+
+# Open WordPress in browser
+just open-site
+```
+
 ## Key Commands
 
-### Docker Environment Management
+### Environment Management
 ```bash
 # Start WordPress environment (detached mode)
-docker-compose up -d
+just up
 
 # Stop WordPress environment
-docker-compose down
+just down
 
 # Restart services
-docker-compose restart
+just restart
+
+# Show container status
+just status
 
 # View logs
-docker-compose logs -f wordpress
-docker-compose logs -f db
+just logs
+just logs db        # specific service logs
+just logs-all       # all container logs
 ```
 
 ### WordPress Management via WP-CLI
-All WP-CLI commands should be run through the wrapper script:
+All WP-CLI commands are run through the Just task runner:
 
 ```bash
 # WordPress version and basic info
-./bin/wp-cli.sh core version
+just wp "core version"
+just core-version    # shorthand
 
 # Plugin management
-./bin/wp-cli.sh plugin list
-./bin/wp-cli.sh plugin install [plugin-name] --activate
-./bin/wp-cli.sh plugin update --all
+just plugin-list
+just plugin-install [plugin-name]
+just plugin-update-all
 
 # Theme management
-./bin/wp-cli.sh theme list
-./bin/wp-cli.sh theme activate [theme-name]
+just theme-list
+just theme-activate [theme-name]
 
 # User management
-./bin/wp-cli.sh user list
-./bin/wp-cli.sh user create [username] [email] --role=administrator
+just user-list
+just user-create [username] [email] [role]
 ```
 
 ### Database Operations
 ```bash
 # Export database
-docker-compose exec db mysqldump -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} > backups/backup-$(date +%Y-%m-%d).sql
+just db-export
 
 # Import database
-docker-compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} < backups/your-backup-file.sql
+just db-import filename.sql
+just db-import-gz filename.sql.gz
 
-# Import compressed database
-zcat backups/backup.sql.gz | docker-compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress}
+# List available backups
+just db-list-backups
+
+# Test database connection
+just db-test
 ```
 
-### VSCode Tasks
-The project includes pre-configured VSCode tasks accessible via Command Palette (Ctrl+Shift+P → "Tasks: Run Task"):
-- Start/Stop/Restart WordPress Environment
-- View WordPress/Database Logs
-- Open WordPress Site (localhost:8080)
-- Open phpMyAdmin (localhost:8081)
-- Run WP-CLI Commands
-- Install WordPress Plugins
-- Export/Import Database
+### Development Tools
+```bash
+# Open WordPress site in browser
+just open-site
+
+# Open phpMyAdmin in browser
+just open-phpmyadmin
+
+# Fix file permissions
+just fix-permissions
+
+# Show project information
+just info
+
+# Get help
+just help
+```
+
+### Media/Uploads Management
+```bash
+# Create backup of uploads directory
+just uploads-backup
+
+# Restore uploads from backup
+just uploads-restore filename.tar.gz
+
+# List available uploads backups
+just uploads-list-backups
+
+# Set up uploads directory (included in setup)
+just setup-uploads
+```
+
+### VSCode Integration
+The project includes pre-configured VSCode tasks that call Just recipes. Access via Command Palette (Ctrl+Shift+P → "Tasks: Run Task"):
+- Start/Stop/Restart WordPress Environment (calls `just up/down/restart`)
+- View WordPress/Database Logs (calls `just logs`)
+- Open WordPress Site/phpMyAdmin (calls `just open-site/open-phpmyadmin`)
+- Run WP-CLI Commands (calls `just wp`)
+- Database Operations (calls `just db-export/db-import`)
+
+All VSCode tasks are thin wrappers around Just recipes for consistency.
 
 ## Project Architecture
 
 ### Directory Structure
 ```
 ├── .vscode/          # VSCode configuration and tasks
-├── bin/              # Utility scripts
-│   ├── wp-cli.sh     # WP-CLI wrapper for Docker
-│   └── *.sh          # Additional utility scripts
-├── backups/          # Database backup storage
+├── backups/          # Database and uploads backup storage
+├── bin/              # Utility scripts (legacy - use Just instead)
 ├── docker/           # Docker configuration files
 │   ├── nginx/        # Nginx configuration (if using PHP-FPM)
 │   └── php/          # PHP configuration
@@ -83,7 +157,10 @@ The project includes pre-configured VSCode tasks accessible via Command Palette 
 ├── prompts/          # AI agent instructions
 │   └── INSTALL.md    # Detailed installation protocol
 ├── src/              # WordPress source files (mounted to container)
-└── tests/            # Test files
+├── tests/            # Test files
+├── uploads/          # WordPress media files (mounted separately)
+├── Justfile          # Task runner commands
+└── docker-compose.yml # Docker services configuration
 ```
 
 ### Docker Services
@@ -113,23 +190,29 @@ WP_DEBUG=true
 ## Development Workflow
 
 ### New WordPress Installation
-1. Create `.env` file with database credentials
-2. Start Docker environment: `docker-compose up -d`
-3. Download WordPress core to `./src/` directory
-4. Access site at `http://localhost:8080`
-5. Complete WordPress setup wizard
+1. Run `just setup` to create `.env`, download WordPress, and set up directories
+2. Start Docker environment: `just up`
+3. Access site at `http://localhost:8080`
+4. Complete WordPress setup wizard
 
 ### Existing Site Import
-1. Use utility scripts in `./bin/` to download existing site files
-2. Import database backup to `./backups/` directory
-3. Import database using Docker command
+1. Use upload scripts or manual FTP/SSH to download existing site files to `./src/`
+2. Copy media files to `./uploads/` directory
+3. Import database backup: `just db-import filename.sql`
 4. Update WordPress URLs for local development
 
 ### Custom Development
 - **Themes**: Place in `./src/wp-content/themes/`
 - **Plugins**: Place in `./src/wp-content/plugins/`
-- **Uploads**: Excluded from Git via `.gitignore`
+- **Uploads**: Stored in `./uploads/` directory (mounted to container)
 - **Config**: `wp-config.php` is auto-generated and excluded from Git
+
+### Media File Management
+The `./uploads/` directory is mounted separately from WordPress core files:
+- **Persistent**: Media files survive container restarts and rebuilds
+- **Backupable**: Use `just uploads-backup` to create media backups
+- **Portable**: Can be synced/copied independently of WordPress core
+- **Performance**: Large media files don't affect WordPress core git operations
 
 ## AI Agent Workflow
 

@@ -4,7 +4,8 @@
 		{
 			"label": "Start WordPress Environment",
 			"type": "shell",
-			"command": "docker-compose up -d",
+			"command": "just",
+			"args": ["up"],
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",
@@ -14,150 +15,265 @@
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Start the WordPress Docker environment"
+			"detail": "Start the WordPress Docker environment using Just"
 		},
 		{
 			"label": "Stop WordPress Environment",
 			"type": "shell",
-			"command": "docker-compose down",
+			"command": "just",
+			"args": ["down"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Stop the WordPress Docker environment"
+			"detail": "Stop the WordPress Docker environment using Just"
 		},
 		{
 			"label": "Restart WordPress Environment",
 			"type": "shell",
-			"command": "docker-compose restart",
+			"command": "just",
+			"args": ["restart"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Restart the WordPress Docker environment"
+			"detail": "Restart the WordPress Docker environment using Just"
 		},
 		{
 			"label": "View WordPress Logs",
 			"type": "shell",
-			"command": "docker-compose logs -f wordpress",
+			"command": "just",
+			"args": ["logs", "wordpress"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "dedicated"
 			},
-			"detail": "View logs from the WordPress container"
+			"detail": "View logs from the WordPress container using Just"
 		},
 		{
 			"label": "View Database Logs",
 			"type": "shell",
-			"command": "docker-compose logs -f db",
+			"command": "just",
+			"args": ["logs", "db"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "dedicated"
 			},
-			"detail": "View logs from the database container"
+			"detail": "View logs from the database container using Just"
+		},
+		{
+			"label": "View All Logs",
+			"type": "shell",
+			"command": "just",
+			"args": ["logs-all"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from all containers using Just"
+		},
+		{
+			"label": "Container Status",
+			"type": "shell",
+			"command": "just",
+			"args": ["status"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show Docker container status using Just"
 		},
 		{
 			"label": "Open WordPress Site",
 			"type": "shell",
-			"command": "xdg-open http://localhost:${env:WP_PORT:-8080} || open http://localhost:${env:WP_PORT:-8080} || start http://localhost:${env:WP_PORT:-8080}",
+			"command": "just",
+			"args": ["open-site"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "silent"
 			},
-			"detail": "Open the WordPress site in your default browser"
+			"detail": "Open the WordPress site in your default browser using Just"
 		},
 		{
 			"label": "Open phpMyAdmin",
 			"type": "shell",
-			"command": "xdg-open http://localhost:${env:PMA_PORT:-8081} || open http://localhost:${env:PMA_PORT:-8081} || start http://localhost:${env:PMA_PORT:-8081}",
+			"command": "just",
+			"args": ["open-phpmyadmin"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "silent"
 			},
-			"detail": "Open phpMyAdmin in your default browser"
+			"detail": "Open phpMyAdmin in your default browser using Just"
 		},
 		{
 			"label": "Run WP-CLI Command",
 			"type": "shell",
-			"command": "./bin/wp-cli.sh",
-			"args": [
-				{
-					"description": "WP-CLI Command",
-					"value": "core version"
-				}
-			],
+			"command": "just",
+			"args": ["wp", "${input:wpCliCommand}"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Run a WP-CLI command in the WordPress container"
+			"detail": "Run a WP-CLI command using Just"
+		},
+		{
+			"label": "WordPress Core Version",
+			"type": "shell",
+			"command": "just",
+			"args": ["core-version"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Check WordPress core version using Just"
+		},
+		{
+			"label": "List Plugins",
+			"type": "shell",
+			"command": "just",
+			"args": ["plugin-list"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "List all WordPress plugins using Just"
 		},
 		{
 			"label": "Install WordPress Plugin",
 			"type": "shell",
-			"command": "./bin/wp-cli.sh plugin install",
-			"args": [
-				{
-					"description": "Plugin Name or URL",
-					"value": ""
-				},
-				"--activate"
-			],
+			"command": "just",
+			"args": ["plugin-install", "${input:pluginName}"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Install and activate a WordPress plugin"
-		},
-		{
-			"label": "Update WordPress Core",
-			"type": "shell",
-			"command": "./bin/wp-cli.sh core update",
-			"problemMatcher": [],
-			"presentation": {
-				"reveal": "always",
-				"panel": "new"
-			},
-			"detail": "Update WordPress core to the latest version"
+			"detail": "Install and activate a WordPress plugin using Just"
 		},
 		{
 			"label": "Update All Plugins",
 			"type": "shell",
-			"command": "./bin/wp-cli.sh plugin update --all",
+			"command": "just",
+			"args": ["plugin-update-all"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Update all WordPress plugins to their latest versions"
+			"detail": "Update all WordPress plugins using Just"
+		},
+		{
+			"label": "Update WordPress Core",
+			"type": "shell",
+			"command": "just",
+			"args": ["core-update"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Update WordPress core using Just"
 		},
 		{
 			"label": "Export Database",
 			"type": "shell",
-			"command": "docker-compose exec db mysqldump -u${env:MYSQL_USER:-wordpress} -p${env:MYSQL_PASSWORD:-wordpress} ${env:MYSQL_DATABASE:-wordpress} > backups/$(date +%Y-%m-%d)-local-backup.sql",
+			"command": "just",
+			"args": ["db-export"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "Export the WordPress database to a SQL file in the backups directory"
+			"detail": "Export the WordPress database using Just"
+		},
+		{
+			"label": "List Database Backups",
+			"type": "shell",
+			"command": "just",
+			"args": ["db-list-backups"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "List available database backups using Just"
 		},
 		{
 			"label": "Import Database",
 			"type": "shell",
-			"command": "echo 'Select a backup file to import' && ls -la backups/*.sql && echo 'Run: docker-compose exec -T db mysql -u${env:MYSQL_USER:-wordpress} -p${env:MYSQL_PASSWORD:-wordpress} ${env:MYSQL_DATABASE:-wordpress} < backups/your-backup-file.sql'",
+			"command": "just",
+			"args": ["db-import", "${input:backupFile}"],
 			"problemMatcher": [],
 			"presentation": {
 				"reveal": "always",
 				"panel": "new"
 			},
-			"detail": "List available database backups and show import command"
+			"detail": "Import a database backup using Just"
+		},
+		{
+			"label": "Project Setup",
+			"type": "shell",
+			"command": "just",
+			"args": ["setup"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Complete project setup (env, WordPress download, backups dir) using Just"
+		},
+		{
+			"label": "Project Info",
+			"type": "shell",
+			"command": "just",
+			"args": ["info"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show project information using Just"
+		},
+		{
+			"label": "Show Available Commands",
+			"type": "shell",
+			"command": "just",
+			"args": ["--list"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show all available Just commands"
+		}
+	],
+	"inputs": [
+		{
+			"id": "wpCliCommand",
+			"description": "WP-CLI Command",
+			"default": "core version",
+			"type": "promptString"
+		},
+		{
+			"id": "pluginName",
+			"description": "Plugin Name or URL",
+			"default": "",
+			"type": "promptString"
+		},
+		{
+			"id": "backupFile",
+			"description": "Backup filename (e.g., backup-2024-01-01.sql)",
+			"default": "",
+			"type": "promptString"
 		}
 	]
 }
