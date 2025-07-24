@@ -11,6 +11,20 @@ default:
 
 # === Docker Environment Management ===
 
+# Build custom WordPress AI development container
+build:
+    @echo "Building WordPress AI development container..."
+    @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
+    docker-compose build --no-cache wordpress
+    @echo "Custom container built successfully!"
+
+# Rebuild and restart environment
+rebuild: build
+    @echo "Rebuilding and restarting environment..."
+    docker-compose down
+    docker-compose up -d
+    @echo "Environment rebuilt and restarted!"
+
 # Start WordPress environment (detached mode)
 up:
     @echo "Starting WordPress environment..."
@@ -42,14 +56,12 @@ logs-all:
 
 # === WP-CLI Operations ===
 
-# Install WP-CLI in the WordPress container (gets latest version)
+# WP-CLI is pre-installed in the custom container
 wp-install:
-    @echo "Installing latest WP-CLI in WordPress container..."
-    docker-compose exec wordpress bash -c "curl -L -o wp-cli.phar https://github.com/wp-cli/wp-cli/releases/download/v2.11.0/wp-cli-2.11.0.phar && chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp"
-    @echo "WP-CLI installed successfully!"
+    @echo "WP-CLI v${WP_CLI_VERSION:-2.11.0} is pre-installed in the custom container!"
     @echo "Testing installation..."
     docker-compose exec wordpress wp --info --allow-root
-    @echo "You can now use: just wp \"core version\""
+    @echo "You can use: just wp \"core version\""
 
 # Run WP-CLI command (usage: just wp "core version")
 wp *args:
@@ -192,6 +204,11 @@ setup-env:
             '' \
             '# WordPress Debug' \
             'WP_DEBUG=true' \
+            '' \
+            '# Development Tool Versions' \
+            'COMPOSER_VERSION=2.7.1' \
+            'WP_CLI_VERSION=2.11.0' \
+            'WP_MCP_VERSION=0.2.3' \
             > .env; \
         echo ".env file created with default settings"; \
     else \
@@ -361,27 +378,18 @@ help:
 
 # === WordPress MCP Plugin Management ===
 
-# Install WordPress MCP plugin from GitHub releases
-mcp-install version="v0.2.3":
-    @echo "Installing WordPress MCP plugin {{version}}..."
-    @if [ -d "src/wp-content/plugins/wordpress-mcp" ]; then \
-        echo "WordPress MCP plugin already exists. Use 'just mcp-update' to update."; \
-        exit 1; \
-    fi
-    curl -L "https://github.com/Automattic/wordpress-mcp/archive/refs/tags/{{version}}.tar.gz" -o wordpress-mcp-{{version}}.tar.gz
-    tar -xzf wordpress-mcp-{{version}}.tar.gz
-    mv wordpress-mcp-$(echo {{version}} | sed 's/^v//') src/wp-content/plugins/wordpress-mcp
-    rm wordpress-mcp-{{version}}.tar.gz
-    @echo "Installing plugin dependencies..."
-    @just mcp-install-deps
-    @echo "Activating plugin..."
+# WordPress MCP plugin is pre-installed in the custom container
+# Activate the pre-installed WordPress MCP plugin
+mcp-install:
+    @echo "WordPress MCP plugin is pre-installed in the container!"
+    @echo "Activating WordPress MCP plugin v${WP_MCP_VERSION:-0.2.3}..."
     @just mcp-activate
-    @echo "WordPress MCP plugin installed and activated!"
+    @echo "WordPress MCP plugin activated!"
 
-# Install WordPress MCP plugin dependencies
+# Note: Plugin dependencies are pre-installed in the container
 mcp-install-deps:
-    @echo "Installing WordPress MCP dependencies..."
-    docker-compose exec wordpress bash -c "cd /var/www/html/wp-content/plugins/wordpress-mcp && composer install --no-dev"
+    @echo "WordPress MCP dependencies are pre-installed in the custom container!"
+    @echo "No additional installation needed."
 
 # Activate WordPress MCP plugin
 mcp-activate:
@@ -421,11 +429,12 @@ mcp-update version="v0.2.3":
     @just mcp-activate
     @echo "WordPress MCP plugin updated to {{version}}!"
 
-# Install Composer in WordPress container
+# Composer is pre-installed in the custom container
 wp-install-composer:
-    @echo "Installing Composer in WordPress container..."
-    docker-compose exec wordpress bash -c "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer"
-    @echo "Composer installed successfully!"
+    @echo "Composer v${COMPOSER_VERSION:-2.7.1} is pre-installed in the custom container!"
+    @echo "Testing installation..."
+    docker-compose exec wordpress composer --version
+    @echo "Composer is ready to use!"
 
 # Remove WordPress MCP plugin completely
 mcp-remove:

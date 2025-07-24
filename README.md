@@ -15,6 +15,7 @@ This template provides a modern, Docker-based WordPress development setup that A
 
 ### **AI-Friendly Architecture**
 - **Just task runner** - Simple, human-readable commands for all operations
+- **Custom WordPress container** - Pre-installed with WP-CLI, Composer, and MCP plugin
 - **Comprehensive documentation** - AI agents can understand and explain everything
 - **Automated WordPress management** - WP-CLI integration for database operations
 - **Smart file organization** - Clear separation of WordPress core, themes, plugins, and uploads
@@ -48,6 +49,31 @@ This template provides a modern, Docker-based WordPress development setup that A
 - Explain WordPress development concepts
 
 ## 🛠️ Core Features Explained
+
+### **Custom WordPress Container - Ready from Day One**
+This template uses a custom-built WordPress container that comes pre-loaded with essential development tools:
+
+```dockerfile
+# Pre-installed in every container:
+✅ WP-CLI v2.11.0          # WordPress command-line interface
+✅ Composer v2.7.1         # PHP dependency manager  
+✅ WordPress MCP Plugin    # AI integration ready
+✅ Git, Vim, Nano         # Development utilities
+```
+
+**Key Benefits:**
+- **No installation delays** - Tools are ready instantly when container starts
+- **Version consistency** - Same tool versions across all environments
+- **Configurable versions** - Update tool versions via `.env` file
+- **Faster setup** - No need to run separate installation commands
+
+**Version Management:**
+```bash
+# In your .env file - customize as needed:
+COMPOSER_VERSION=2.7.1    # PHP Composer version
+WP_CLI_VERSION=2.11.0     # WP-CLI version  
+WP_MCP_VERSION=0.2.3      # WordPress MCP Plugin version
+```
 
 ### **Just Task Runner - Your Command Center**
 Instead of remembering complex Docker commands, use simple, readable commands:
@@ -89,14 +115,17 @@ The `.gitignore` is configured to:
 
 ## 📋 Quick Start Guide
 
-### **1. Start Your WordPress Site**
+### **1. Initialize Your Environment**
 ```bash
-just up                    # Starts WordPress at http://localhost:8080
+just setup                # Creates .env, downloads WordPress, sets up directories
+just build                # Builds custom container with pre-installed tools (first time only)
+just up                   # Starts WordPress at http://localhost:8080
 ```
 
-### **2. Install WordPress CLI Tools**
+### **2. Verify Pre-installed Tools**
 ```bash
-just wp-install           # Adds professional WordPress management tools
+just wp-install           # Verifies WP-CLI is ready (pre-installed in container)
+just wp-install-composer  # Verifies Composer is ready (pre-installed in container)
 ```
 
 ### **3. Work with Your Site**
@@ -107,12 +136,29 @@ just wp "plugin list"     # See installed plugins
 just urls-check          # Check current URLs
 ```
 
-### **4. Import Existing Site (Optional)**
-If you have WordPress backup files:
+### **4. WordPress Installation Options**
+
+**Option A: New WordPress Site**
 ```bash
-# Put your files in the backups/ folder, then:
+just open-site          # Opens browser to complete WordPress setup wizard
+# OR automated via CLI:
+just wp "core install --url=http://localhost:8080 --title='My Site' --admin_user=admin --admin_password=secure123 --admin_email=admin@example.com"
+```
+
+**Option B: Import Existing Site**
+```bash
+# Put your backup files in the backups/ folder, then:
 just db-import your-backup.sql     # Restore database
 just urls-update                   # Fix URLs for local development
+# Copy media files to uploads/ directory if available
+```
+
+**Option C: Complete Site Migration**
+```bash
+# Copy WordPress files to src/ directory
+# Copy media files to uploads/ directory  
+just db-import production-backup.sql
+just urls-replace "production-domain.com" "localhost:8080"
 ```
 
 ## 🤖 AI Agent Instructions

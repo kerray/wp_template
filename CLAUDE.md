@@ -44,6 +44,12 @@ just open-site
 
 ### Environment Management
 ```bash
+# Build custom WordPress container (first time or after changes)
+just build
+
+# Rebuild and restart environment
+just rebuild
+
 # Start WordPress environment (detached mode)
 just up
 
@@ -63,7 +69,7 @@ just logs-all       # all container logs
 ```
 
 ### WordPress Management via WP-CLI
-All WP-CLI commands are run through the Just task runner:
+WP-CLI is pre-installed in our custom container. All commands are run through the Just task runner:
 
 ```bash
 # WordPress version and basic info
@@ -82,6 +88,10 @@ just theme-activate [theme-name]
 # User management
 just user-list
 just user-create [username] [email] [role]
+
+# Pre-installed tool verification
+just wp-install           # Verify WP-CLI installation
+just wp-install-composer  # Verify Composer installation
 ```
 
 ### Database Operations
@@ -170,11 +180,20 @@ All VSCode tasks are thin wrappers around Just recipes for consistency.
 ```
 
 ### Docker Services
-- **wordpress**: Main WordPress container (Apache + PHP)
+- **wordpress**: Custom WordPress AI Development container (Apache + PHP + WP-CLI + Composer + MCP Plugin)
 - **db**: MySQL 5.7 database
 - **phpmyadmin**: Database management interface
 - **wordpress_fpm** (optional): PHP-FPM alternative to Apache
 - **nginx** (optional): Reverse proxy for PHP-FPM
+
+### Custom WordPress Container Features
+Our custom WordPress container extends the official WordPress image with pre-installed development tools:
+- **WP-CLI**: Command-line interface for WordPress management
+- **Composer**: PHP dependency manager for plugin/theme development
+- **WordPress MCP Plugin**: Pre-installed and ready for AI agent integration
+- **Development Tools**: Git, Vim, Nano, and other essential utilities
+
+All tool versions are configurable via environment variables in your `.env` file.
 
 ### Environment Variables
 Configure via `.env` file:
@@ -191,21 +210,259 @@ PMA_PORT=8081         # phpMyAdmin port
 
 # WordPress Debug
 WP_DEBUG=true
+
+# Development Tool Versions (for custom container)
+COMPOSER_VERSION=2.7.1    # PHP Composer version
+WP_CLI_VERSION=2.11.0     # WP-CLI version
+WP_MCP_VERSION=0.2.3      # WordPress MCP Plugin version
 ```
 
-## Development Workflow
+## WordPress Installation Workflows
 
-### New WordPress Installation
-1. Run `just setup` to create `.env`, download WordPress, and set up directories
-2. Start Docker environment: `just up`
-3. Access site at `http://localhost:8080`
-4. Complete WordPress setup wizard
+This template supports three main installation scenarios. Choose the workflow that matches your needs.
 
-### Existing Site Import
-1. Use upload scripts or manual FTP/SSH to download existing site files to `./src/`
-2. Copy media files to `./uploads/` directory
-3. Import database backup: `just db-import filename.sql`
-4. Update WordPress URLs for local development
+### 🆕 Scenario 1: New WordPress Installation (Blank Site)
+
+**Complete step-by-step process for creating a fresh WordPress site:**
+
+1. **Initial Setup**
+   ```bash
+   just setup              # Creates .env, downloads WordPress core, sets up directories
+   just build              # Builds custom container (first time only)
+   just up                 # Starts Docker environment
+   ```
+
+2. **WordPress Installation Options**
+
+   **Option A: Via Web Interface (Recommended)**
+   ```bash
+   just open-site          # Opens http://localhost:8080 in browser
+   # Complete WordPress setup wizard:
+   # - Site Title, Username, Password, Email
+   # - Note: Database connection is automatic
+   ```
+
+   **Option B: Via WP-CLI (Automated)**
+   ```bash
+   just wp "core install --url=http://localhost:8080 --title='Your Site Title' --admin_user=admin --admin_password=secure_password --admin_email=your@email.com"
+   ```
+
+3. **Post-Installation Setup**
+   ```bash
+   just mcp-install        # Activates WordPress MCP plugin for AI integration
+   just urls-check         # Verify URLs are correct for local development
+   just fix-all-permissions # Ensure proper file permissions
+   ```
+
+4. **Verification**
+   ```bash
+   just status             # Check all containers are running
+   just wp "core version"  # Verify WordPress is installed
+   just mcp-status         # Confirm MCP plugin is active
+   ```
+
+5. **MCP Token Setup** (for AI integration)
+   - Access: http://localhost:8080/wp-admin
+   - Navigate: Settings > WordPress MCP > Authentication Tokens
+   - Generate JWT token (1-24 hours recommended)
+   - Configure your AI client with the token
+
+### 🔄 Scenario 2: Restore from Database Backup
+
+**For sites where you have a database backup (.sql/.sql.gz) but need fresh WordPress core:**
+
+1. **Initial Setup**
+   ```bash
+   just setup              # Sets up environment
+   just build              # Builds custom container
+   ```
+
+2. **Database Restoration**
+   ```bash
+   just up                 # Start containers
+   # Wait for database to be ready (about 30 seconds)
+   just db-import backup-filename.sql        # For .sql files
+   # OR
+   just db-import-gz backup-filename.sql.gz  # For compressed files
+   ```
+
+3. **URL Configuration**
+   ```bash
+   # Update URLs for local development
+   just urls-update        # Sets to http://localhost:8080
+   # OR manually replace if needed:
+   just urls-replace "old-domain.com" "localhost:8080"
+   ```
+
+4. **WordPress Core Update** (if backup is from different WP version)
+   ```bash
+   just wp "core update"
+   just wp "core update-db"  # Update database if needed
+   ```
+
+5. **Plugin & Media Setup**
+   ```bash
+   just mcp-install        # Install MCP plugin
+   just plugin-update-all  # Update all plugins
+   just fix-all-permissions # Fix permissions
+   ```
+
+6. **Media Files** (if available)
+   ```bash
+   # Copy media files to uploads directory
+   cp -r /path/to/old-site/wp-content/uploads/* uploads/
+   # OR restore from uploads backup
+   just uploads-restore uploads-backup-filename.tar.gz
+   ```
+
+### 📥 Scenario 3: Complete Site Migration (Files + Database)
+
+**For migrating a complete existing WordPress site with files and database:**
+
+1. **Preparation**
+   ```bash
+   just setup              # Initialize template
+   just build              # Build custom container
+   ```
+
+2. **File Migration**
+   ```bash
+   # Copy WordPress core and content files
+   rsync -av user@remote-server:/path/to/wordpress/ src/
+   # OR manually download and extract
+   
+   # Copy media files separately for better organization
+   rsync -av user@remote-server:/path/to/wordpress/wp-content/uploads/ uploads/
+   # OR extract from archive
+   ```
+
+3. **Database Migration**
+   ```bash
+   just up                 # Start environment
+   # Export database from remote server:
+   # ssh user@remote-server "mysqldump -u user -p database_name > site-backup.sql"
+   # Copy the backup file to ./backups/ directory
+   
+   just db-import site-backup.sql
+   ```
+
+4. **Configuration Updates**
+   ```bash
+   # Update wp-config.php if needed (usually automatic)
+   # Update URLs for local development
+   just urls-replace "production-domain.com" "localhost:8080"
+   
+   # Clear any caching if plugins are installed
+   just wp "cache flush" 2>/dev/null || echo "No cache to flush"
+   ```
+
+5. **Plugin & Permission Setup**
+   ```bash
+   just plugin-update-all   # Update plugins for compatibility
+   just mcp-install        # Add MCP plugin for AI integration
+   just fix-all-permissions # Ensure proper file permissions
+   
+   # Verify installation
+   just wp "search-replace --dry-run 'production-domain.com' 'localhost:8080'"
+   ```
+
+6. **Final Verification**
+   ```bash
+   just open-site          # Check site loads correctly
+   just mcp-status         # Verify MCP plugin is active
+   just wp "user list"     # Verify user accounts migrated
+   ```
+
+### 🔧 Post-Installation Tasks (All Scenarios)
+
+**Essential tasks to complete after any installation:**
+
+1. **Security Hardening**
+   ```bash
+   # Change default admin password if using automated install
+   just wp "user update admin --user_pass=new_secure_password"
+   
+   # Remove default plugins if not needed
+   just wp "plugin delete hello akismet" # Optional
+   ```
+
+2. **Development Configuration**
+   ```bash
+   # Enable debug mode (already in .env)
+   just wp "config set WP_DEBUG true --type=constant"
+   just wp "config set WP_DEBUG_LOG true --type=constant"
+   ```
+
+3. **Backup Strategy Setup**
+   ```bash
+   # Create initial backups
+   just db-export          # Creates database backup
+   just uploads-backup     # Creates media backup
+   
+   # List available backups
+   just db-list-backups
+   just uploads-list-backups
+   ```
+
+4. **MCP Integration Setup**
+   ```bash
+   # Get token generation instructions
+   just mcp-token-info
+   
+   # Test MCP endpoints
+   just mcp-test-endpoints
+   
+   # Show client configuration examples
+   just mcp-client-config
+   ```
+
+### 🚨 Common Issues & Solutions
+
+**Container Build Issues**
+```bash
+# Force rebuild without cache
+just rebuild
+
+# Check container logs
+just logs wordpress
+```
+
+**Database Connection Issues**
+```bash
+# Wait longer for database to start
+sleep 30 && just wp "db check"
+
+# Test database connection
+just db-test
+```
+
+**Permission Issues**
+```bash
+# Fix all permission problems
+just fix-all-permissions
+
+# Specific WordPress update permissions
+just fix-update-permissions
+```
+
+**URL Issues After Migration**
+```bash
+# Check current URLs
+just urls-check
+
+# Update all URLs in database
+just wp "search-replace 'old-domain.com' 'localhost:8080' --dry-run"
+just wp "search-replace 'old-domain.com' 'localhost:8080'"
+```
+
+**Plugin Issues**
+```bash
+# Deactivate all plugins temporarily
+just wp "plugin deactivate --all"
+
+# Reactivate one by one to find problematic plugin
+just wp "plugin activate plugin-name"
+```
 
 ### Custom Development
 - **Themes**: Place in `./src/wp-content/themes/`
