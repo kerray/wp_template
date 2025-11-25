@@ -12,6 +12,14 @@ ENV COMPOSER_VERSION=2.7.1
 ENV WP_CLI_VERSION=2.11.0
 ENV WP_MCP_VERSION=0.2.3
 
+# Accept user and group ID as build arguments for permission mapping
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Create a group and user with the same ID as the host user
+RUN groupadd -g ${GROUP_ID} hostgroup \
+    && useradd -u ${USER_ID} -g hostgroup -m -s /bin/bash hostuser
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \

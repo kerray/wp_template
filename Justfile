@@ -15,20 +15,22 @@ default:
 build:
     @echo "Building WordPress AI development container..."
     @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
-    docker-compose build --no-cache wordpress
+    @echo "Using host user: $(id -u):$(id -g)"
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose build --no-cache wordpress
     @echo "Custom container built successfully!"
 
 # Rebuild and restart environment
 rebuild: build
     @echo "Rebuilding and restarting environment..."
     docker-compose down
-    docker-compose up -d
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
     @echo "Environment rebuilt and restarted!"
 
 # Start WordPress environment (detached mode)
 up:
     @echo "Starting WordPress environment..."
-    docker-compose up -d
+    @echo "Using host user: $(id -u):$(id -g)"
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
     @echo "Environment started. WordPress: http://localhost:${WP_PORT:-8080}, phpMyAdmin: http://localhost:${PMA_PORT:-8081}"
 
 # Stop WordPress environment

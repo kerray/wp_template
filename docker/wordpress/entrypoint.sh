@@ -9,8 +9,19 @@ echo "📦 Versions: WP-CLI v${WP_CLI_VERSION}, Composer v${COMPOSER_VERSION}, M
 
 # Ensure wp-content directories exist with proper permissions
 mkdir -p /var/www/html/wp-content/{plugins,themes,uploads,upgrade}
-chown -R www-data:www-data /var/www/html/wp-content
-chmod -R 755 /var/www/html/wp-content
+
+# Skip chown if running as mapped user (permissions handled by host user mapping)
+if [ "$(id -u)" != "1000" ]; then
+    chown -R www-data:www-data /var/www/html/wp-content
+fi
+chmod -R 755 /var/www/html/wp-content 2>/dev/null || true
+
+# Fix Apache log permissions - create log directory and redirect logs if needed
+mkdir -p /tmp/apache-logs 2>/dev/null || true
+chmod 755 /tmp/apache-logs 2>/dev/null || true
+
+# Override Apache log configuration to use temp directory
+export APACHE_LOG_DIR=/tmp/apache-logs
 
 # Verify MCP plugin is in place
 if [ -d "/var/www/html/wp-content/plugins/wordpress-mcp" ]; then
