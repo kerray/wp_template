@@ -11,13 +11,21 @@ default:
 
 # === Docker Environment Management ===
 
-# Build custom WordPress AI development container
+# Build custom WordPress AI development container (Apache version)
 build:
-    @echo "Building WordPress AI development container..."
+    @echo "Building WordPress AI development container (Apache)..."
     @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
     @echo "Using host user: $(id -u):$(id -g)"
     USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose build --no-cache wordpress
     @echo "Custom container built successfully!"
+
+# Build PHP-FPM + Nginx containers
+build-fpm:
+    @echo "Building WordPress PHP-FPM + Nginx containers..."
+    @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
+    @echo "Using host user: $(id -u):$(id -g)"
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml build --no-cache wordpress
+    @echo "PHP-FPM container built successfully!"
 
 # Rebuild and restart environment
 rebuild: build
@@ -26,35 +34,103 @@ rebuild: build
     USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
     @echo "Environment rebuilt and restarted!"
 
-# Start WordPress environment (detached mode)
+# Rebuild and restart PHP-FPM environment
+rebuild-fpm: build-fpm
+    @echo "Rebuilding and restarting PHP-FPM environment..."
+    docker compose -f docker-compose.fpm.yml down
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml up -d
+    @echo "PHP-FPM environment rebuilt and restarted!"
+
+# Start WordPress environment (detached mode) - Apache version
 up:
-    @echo "Starting WordPress environment..."
+    @echo "Starting WordPress environment (Apache)..."
     @echo "Using host user: $(id -u):$(id -g)"
     USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
     @echo "Environment started. WordPress: http://localhost:${WP_PORT:-8080}, phpMyAdmin: http://localhost:${PMA_PORT:-8081}"
+
+# Start WordPress PHP-FPM + Nginx environment (detached mode)
+up-fpm *profiles:
+    @echo "Starting WordPress PHP-FPM + Nginx environment..."
+    @echo "Using host user: $(id -u):$(id -g)"
+    @if [ "{{profiles}}" = "all" ]; then \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile all up -d; \
+        echo "Environment started with ALL services:"; \
+        echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
+        echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081}"; \
+        echo "  Adminer: http://localhost:${ADMINER_PORT:-8082}"; \
+        echo "  SFTP: sftp -P ${SFTP_PORT:-2222} wordpress@localhost"; \
+    elif [ "{{profiles}}" = "phpmyadmin" ]; then \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile phpmyadmin up -d; \
+        echo "Environment started with phpMyAdmin:"; \
+        echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
+        echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081}"; \
+    elif [ "{{profiles}}" = "adminer" ]; then \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile adminer up -d; \
+        echo "Environment started with Adminer:"; \
+        echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
+        echo "  Adminer: http://localhost:${ADMINER_PORT:-8082}"; \
+    elif [ "{{profiles}}" = "sftp" ]; then \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile sftp up -d; \
+        echo "Environment started with SFTP:"; \
+        echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
+        echo "  SFTP: sftp -P ${SFTP_PORT:-2222} wordpress@localhost"; \
+    else \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml up -d; \
+        echo "Environment started (core services only):"; \
+        echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
+        echo ""; \
+        echo "Optional services (use 'just up-fpm <profile>'):"; \
+        echo "  just up-fpm phpmyadmin  # Add phpMyAdmin"; \
+        echo "  just up-fpm adminer     # Add Adminer"; \
+        echo "  just up-fpm sftp        # Add SFTP access"; \
+        echo "  just up-fpm all         # Add all optional services"; \
+    fi
 
 # Stop WordPress environment
 down:
     @echo "Stopping WordPress environment..."
     docker-compose down
 
+# Stop PHP-FPM environment
+down-fpm:
+    @echo "Stopping PHP-FPM environment..."
+    docker compose -f docker-compose.fpm.yml --profile all down
+
 # Restart WordPress environment
 restart:
     @echo "Restarting WordPress environment..."
     docker-compose restart
+
+# Restart PHP-FPM environment
+restart-fpm:
+    @echo "Restarting PHP-FPM environment..."
+    docker compose -f docker-compose.fpm.yml restart
 
 # Show status of all containers
 status:
     @echo "Container status:"
     docker-compose ps
 
+# Show status of PHP-FPM containers
+status-fpm:
+    @echo "PHP-FPM Container status:"
+    docker compose -f docker-compose.fpm.yml --profile all ps
+
 # View WordPress container logs
 logs service="wordpress":
     docker-compose logs -f {{service}}
 
+# View PHP-FPM container logs
+logs-fpm service="wordpress":
+    docker compose -f docker-compose.fpm.yml logs -f {{service}}
+
 # View logs from all containers
 logs-all:
     docker-compose logs -f
+
+# View logs from all PHP-FPM containers
+logs-all-fpm:
+    docker compose -f docker-compose.fpm.yml --profile all logs -f
 
 # === WP-CLI Operations ===
 
@@ -88,6 +164,30 @@ wp *args:
         fi; \
         echo "Running: wp {{args}}"; \
         docker-compose exec wordpress wp {{args}} --allow-root; \
+    fi
+
+# Run WP-CLI command in PHP-FPM environment (usage: just wp-fpm "core version")
+wp-fpm *args:
+    @if [ "{{args}}" = "" ]; then \
+        echo "WordPress CLI wrapper for PHP-FPM Docker environment"; \
+        echo "Usage: just wp-fpm [wp-cli command]"; \
+        echo ""; \
+        echo "Examples:"; \
+        echo "  just wp-fpm core version                # Check WordPress version"; \
+        echo "  just wp-fpm plugin list                 # List installed plugins"; \
+        echo "  just wp-fpm cache flush                 # Flush WordPress cache"; \
+        echo ""; \
+        echo "For more WP-CLI commands, visit: https://developer.wordpress.org/cli/commands/"; \
+    else \
+        if ! docker compose -f docker-compose.fpm.yml ps | grep -q "wordpress.*Up"; then \
+            echo "Warning: WordPress PHP-FPM container does not appear to be running"; \
+            echo "Starting PHP-FPM Docker environment..."; \
+            docker compose -f docker-compose.fpm.yml up -d; \
+            echo "Waiting for WordPress container to be ready..."; \
+            sleep 5; \
+        fi; \
+        echo "Running: wp {{args}}"; \
+        docker compose -f docker-compose.fpm.yml exec wordpress wp {{args}} --allow-root; \
     fi
 
 # Install and activate a WordPress plugin
@@ -337,11 +437,27 @@ fix-update-permissions:
     @echo "WordPress update permissions fixed!"
     @echo "You can now update plugins and themes from the WordPress admin."
 
+# Fix WordPress update permissions in PHP-FPM Docker container
+fix-update-permissions-fpm:
+    @echo "Fixing WordPress update permissions in PHP-FPM Docker container..."
+    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "chown -R www-data:www-data /var/www/html/wp-content/"
+    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "chmod -R 755 /var/www/html/wp-content/"
+    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "mkdir -p /var/www/html/wp-content/upgrade && chown www-data:www-data /var/www/html/wp-content/upgrade && chmod 755 /var/www/html/wp-content/upgrade"
+    @echo "WordPress update permissions fixed!"
+    @echo "You can now update plugins and themes from the WordPress admin."
+
 # Fix all permissions (local + Docker container)
 fix-all-permissions:
     @echo "Fixing all permissions (local files + Docker container)..."
     just fix-permissions
     just fix-update-permissions
+    @echo "All permissions fixed!"
+
+# Fix all permissions for PHP-FPM (local + Docker container)
+fix-all-permissions-fpm:
+    @echo "Fixing all permissions for PHP-FPM (local files + Docker container)..."
+    just fix-permissions
+    just fix-update-permissions-fpm
     @echo "All permissions fixed!"
 
 # === Information ===
@@ -359,6 +475,34 @@ info:
     @docker-compose ps 2>/dev/null || echo "Docker environment not running"
     @echo ""
     @echo "Available commands: just --list"
+
+# Show PHP-FPM environment information
+info-fpm:
+    @echo "WordPress PHP-FPM + Nginx Workspace"
+    @echo "===================================="
+    @echo ""
+    @echo "Core Services:"
+    @echo "  WordPress: http://localhost:${WP_PORT:-8080}"
+    @echo ""
+    @echo "Optional Services (use 'just up-fpm <profile>'):"
+    @echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081} (--profile phpmyadmin)"
+    @echo "  Adminer:    http://localhost:${ADMINER_PORT:-8082} (--profile adminer)"
+    @echo "  SFTP:       sftp -P ${SFTP_PORT:-2222} wordpress@localhost (--profile sftp)"
+    @echo ""
+    @echo "Database:"
+    @echo "  Host: db"
+    @echo "  Database: ${MYSQL_DATABASE:-wordpress}"
+    @echo "  User: ${MYSQL_USER:-wordpress}"
+    @echo ""
+    @echo "Container Status:"
+    @docker compose -f docker-compose.fpm.yml --profile all ps 2>/dev/null || echo "PHP-FPM environment not running"
+    @echo ""
+    @echo "Commands:"
+    @echo "  just up-fpm           # Start core services"
+    @echo "  just up-fpm all       # Start all services"
+    @echo "  just down-fpm         # Stop all services"
+    @echo "  just wp-fpm \"command\" # Run WP-CLI"
+    @echo "  just logs-fpm nginx   # View nginx logs"
 
 # Show help information
 help:
@@ -554,3 +698,221 @@ mcp-help:
     @echo "  just mcp-install-deps         # Install plugin PHP dependencies"
     @echo ""
     @echo "For detailed installation guide, see: docs/wordpress-mcp-installation.md"
+
+# === Production Security ===
+
+# Show production security checklist
+security-checklist:
+    @echo "Production Security Checklist"
+    @echo "=============================="
+    @echo ""
+    @echo "CRITICAL - Before deploying to production:"
+    @echo ""
+    @echo "[ ] 1. Changed MYSQL_ROOT_PASSWORD (use: openssl rand -base64 32)"
+    @echo "[ ] 2. Changed MYSQL_PASSWORD (use: openssl rand -base64 32)"
+    @echo "[ ] 3. Changed SFTP_PASSWORD or disabled SFTP service"
+    @echo "[ ] 4. Set WP_DEBUG=false in .env"
+    @echo "[ ] 5. NOT exposing phpMyAdmin/Adminer to internet"
+    @echo "[ ] 6. Configured SSL/TLS via reverse proxy"
+    @echo "[ ] 7. Installed WordPress security plugin (Wordfence, etc.)"
+    @echo ""
+    @echo "For detailed guidance, see: docs/PRODUCTION_SECURITY.md"
+    @echo ""
+    @echo "Quick commands:"
+    @echo "  just security-generate-passwords  # Generate secure passwords"
+    @echo "  just security-setup-production    # Copy production .env template"
+    @echo "  just security-verify              # Check current security status"
+
+# Generate secure random passwords
+security-generate-passwords:
+    @echo "Generated Secure Passwords (32 characters):"
+    @echo "============================================"
+    @echo ""
+    @echo "MYSQL_ROOT_PASSWORD=$(openssl rand -base64 32)"
+    @echo ""
+    @echo "MYSQL_PASSWORD=$(openssl rand -base64 32)"
+    @echo ""
+    @echo "SFTP_PASSWORD=$(openssl rand -base64 32)"
+    @echo ""
+    @echo "Copy these to your .env file. Each password is unique."
+
+# Setup production environment from template
+security-setup-production:
+    @if [ -f ".env" ] && [ -s ".env" ]; then \
+        echo "WARNING: .env file already exists!"; \
+        echo ""; \
+        read -p "Backup existing .env and create production template? (y/N): " confirm; \
+        if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+            timestamp=$$(date +%Y%m%d-%H%M%S); \
+            cp .env ".env.backup-$$timestamp"; \
+            echo "Backed up existing .env to .env.backup-$$timestamp"; \
+            cp .env.production .env; \
+            echo "Created new .env from production template"; \
+            echo ""; \
+            echo "IMPORTANT: Edit .env and replace ALL 'CHANGE_ME' values!"; \
+            echo "Use 'just security-generate-passwords' to generate secure passwords."; \
+        else \
+            echo "Aborted. No changes made."; \
+        fi \
+    else \
+        cp .env.production .env; \
+        echo "Created .env from production template"; \
+        echo ""; \
+        echo "IMPORTANT: Edit .env and replace ALL 'CHANGE_ME' values!"; \
+        echo "Use 'just security-generate-passwords' to generate secure passwords."; \
+    fi
+
+# Verify current security configuration
+security-verify:
+    @echo "Security Configuration Verification"
+    @echo "===================================="
+    @echo ""
+    @issues=0; \
+    \
+    echo "Checking .env settings..."; \
+    echo ""; \
+    \
+    if grep -q "MYSQL_ROOT_PASSWORD=rootpassword" .env 2>/dev/null; then \
+        echo "[CRITICAL] MYSQL_ROOT_PASSWORD is using default value!"; \
+        issues=$$((issues + 1)); \
+    elif grep -q "MYSQL_ROOT_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
+        echo "[CRITICAL] MYSQL_ROOT_PASSWORD has not been changed!"; \
+        issues=$$((issues + 1)); \
+    else \
+        echo "[OK] MYSQL_ROOT_PASSWORD appears to be customized"; \
+    fi; \
+    \
+    if grep -q "MYSQL_PASSWORD=wordpress" .env 2>/dev/null; then \
+        echo "[CRITICAL] MYSQL_PASSWORD is using default value!"; \
+        issues=$$((issues + 1)); \
+    elif grep -q "MYSQL_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
+        echo "[CRITICAL] MYSQL_PASSWORD has not been changed!"; \
+        issues=$$((issues + 1)); \
+    else \
+        echo "[OK] MYSQL_PASSWORD appears to be customized"; \
+    fi; \
+    \
+    if grep -q "WP_DEBUG=true" .env 2>/dev/null; then \
+        echo "[WARNING] WP_DEBUG is enabled (should be false in production)"; \
+        issues=$$((issues + 1)); \
+    else \
+        echo "[OK] WP_DEBUG is disabled or not set to true"; \
+    fi; \
+    \
+    if grep -q "SFTP_PASSWORD=wordpress" .env 2>/dev/null; then \
+        echo "[WARNING] SFTP_PASSWORD is using default value"; \
+        issues=$$((issues + 1)); \
+    elif grep -q "SFTP_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
+        echo "[WARNING] SFTP_PASSWORD has not been changed"; \
+        issues=$$((issues + 1)); \
+    else \
+        echo "[OK] SFTP_PASSWORD appears to be customized or disabled"; \
+    fi; \
+    \
+    echo ""; \
+    if [ $$issues -gt 0 ]; then \
+        echo "Found $$issues security issue(s). Please address before production deployment."; \
+        echo "See: docs/PRODUCTION_SECURITY.md"; \
+    else \
+        echo "Basic security checks passed!"; \
+        echo "Remember to also verify:"; \
+        echo "  - phpMyAdmin/Adminer are not publicly accessible"; \
+        echo "  - SSL/TLS is configured via reverse proxy"; \
+        echo "  - WordPress security plugins are installed"; \
+    fi
+
+# Test nginx security headers
+security-test-headers:
+    @echo "Testing Security Headers..."
+    @echo ""
+    @curl -s -I http://localhost:${WP_PORT:-8080} 2>/dev/null | grep -iE "^(x-frame|x-xss|x-content|content-security|strict-transport|server:)" || echo "Could not connect to WordPress. Is it running?"
+
+# Test blocked paths (security file protection)
+security-test-blocked:
+    @echo "Testing Blocked Paths..."
+    @echo ""
+    @echo "Testing wp-config.php:"
+    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-config.php 2>/dev/null); \
+    if [ "$$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $$status (expected 403)"; fi
+    @echo ""
+    @echo "Testing .git/config:"
+    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/.git/config 2>/dev/null); \
+    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+    @echo ""
+    @echo "Testing xmlrpc.php:"
+    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/xmlrpc.php 2>/dev/null); \
+    if [ "$$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $$status (expected 403)"; fi
+    @echo ""
+    @echo "Testing debug.log:"
+    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/debug.log 2>/dev/null); \
+    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+    @echo ""
+    @echo "Testing PHP in uploads:"
+    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/uploads/test.php 2>/dev/null); \
+    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+
+# Full security audit
+security-audit:
+    @echo "Running Full Security Audit"
+    @echo "============================"
+    @echo ""
+    just security-verify
+    @echo ""
+    @echo "---"
+    @echo ""
+    just security-test-headers
+    @echo ""
+    @echo "---"
+    @echo ""
+    just security-test-blocked
+    @echo ""
+    @echo "---"
+    @echo ""
+    @echo "For comprehensive security guidance, see: docs/PRODUCTION_SECURITY.md"
+
+# Test security on a remote URL (usage: just security-test-remote https://example.com)
+security-test-remote url:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Security Check: {{url}}"
+    echo "=============================="
+    echo ""
+    echo "1. Site Accessibility:"
+    status=$(curl -s -o /dev/null -w "%{http_code}" "{{url}}/" --connect-timeout 10 2>/dev/null || echo "000")
+    if [ "$status" = "200" ]; then echo "   [OK] Homepage: $status"; else echo "   [FAIL] Homepage: $status"; fi
+    echo ""
+    echo "2. Security Headers:"
+    curl -sI "{{url}}/" 2>/dev/null | grep -iE "^(x-frame|x-xss|x-content|strict-transport|server:)" | sed 's/^/   /' || echo "   Could not retrieve headers"
+    echo ""
+    echo "3. Blocked Files:"
+    for path in "wp-config.php:403" "xmlrpc.php:403" ".git/config:403,404" ".htaccess:403,404" "wp-content/debug.log:403,404"; do
+        file="${path%%:*}"
+        expected="${path##*:}"
+        status=$(curl -s -o /dev/null -w "%{http_code}" "{{url}}/$file" 2>/dev/null || echo "000")
+        if echo "$expected" | grep -q "$status"; then
+            echo "   [OK] $file: $status"
+        else
+            echo "   [FAIL] $file: $status (expected $expected)"
+        fi
+    done
+
+# Show security help
+security-help:
+    @echo "Production Security Commands"
+    @echo "============================"
+    @echo ""
+    @echo "Setup:"
+    @echo "  just security-setup-production   # Create .env from production template"
+    @echo "  just security-generate-passwords # Generate secure random passwords"
+    @echo ""
+    @echo "Verification:"
+    @echo "  just security-checklist          # Show security checklist"
+    @echo "  just security-verify             # Check .env security settings"
+    @echo "  just security-test-headers       # Test nginx security headers (local)"
+    @echo "  just security-test-blocked       # Test blocked file paths (local)"
+    @echo "  just security-test-remote <url>  # Test security on remote URL"
+    @echo "  just security-audit              # Run full security audit (local)"
+    @echo ""
+    @echo "Documentation:"
+    @echo "  docs/PRODUCTION_SECURITY.md      # Detailed security guide"
+    @echo "  .env.production                  # Production environment template"

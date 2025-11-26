@@ -10,6 +10,7 @@
 | [Testing](testing.md) | Playwright test suite, error detection |
 | [Troubleshooting](troubleshooting.md) | Common issues and solutions |
 | [MCP Installation](wordpress-mcp-installation.md) | WordPress MCP plugin setup |
+| **[Production Security](PRODUCTION_SECURITY.md)** | **Security hardening for production deployment** |
 
 ## Step-by-Step Workflows
 
@@ -38,6 +39,16 @@ just db-export        # Backup database
 just wp "command"     # Run WP-CLI command
 ```
 
+## Security Commands
+
+```bash
+just security-checklist          # View production security checklist
+just security-setup-production   # Create .env from secure template
+just security-generate-passwords # Generate secure random passwords
+just security-verify             # Check current security status
+just security-audit              # Run full security audit
+```
+
 ## Key Files
 
 | File | Purpose |
@@ -45,6 +56,8 @@ just wp "command"     # Run WP-CLI command
 | `CLAUDE.md` | Claude Code project instructions |
 | `Justfile` | Task runner commands |
 | `.env` | Environment configuration |
-| `docker-compose.yml` | Docker services |
+| `.env.production` | Production environment template (secure defaults) |
+| `docker-compose.yml` | Docker services (Apache) |
+| `docker-compose.fpm.yml` | Docker services (Nginx + PHP-FPM) |
 | `.vibe-tools.md` | vibe-tools CLI reference |
 | `SITE_CONFIG.md` | Site-specific configuration |

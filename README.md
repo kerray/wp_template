@@ -4,6 +4,31 @@
 
 This template provides a modern, Docker-based WordPress development setup that AI agents can easily understand, configure, and manage. Perfect for both beginners and experienced developers who want to work with AI assistance.
 
+---
+
+## **IMPORTANT: Production Security**
+
+> **This template uses DEFAULT CREDENTIALS that are NOT SAFE for production!**
+
+Before deploying to any publicly accessible server:
+
+1. **Change ALL passwords** - Run `just security-generate-passwords`
+2. **Use production template** - Run `just security-setup-production`
+3. **Disable debug mode** - Set `WP_DEBUG=false`
+4. **Don't expose phpMyAdmin/Adminer** to the internet
+5. **Run security audit** - Run `just security-audit`
+
+**Quick security commands:**
+```bash
+just security-checklist          # View security checklist
+just security-setup-production   # Create secure .env from template
+just security-verify             # Check current security status
+```
+
+For detailed guidance, see **[docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md)**
+
+---
+
 ## 🚀 What This Template Gives You
 
 ### **Instant WordPress Development Environment**
@@ -451,15 +476,34 @@ just mcp-install
 ## 🔧 Advanced Configuration
 
 ### **Production-Ready Deployment**
+
+> **CRITICAL:** See [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md) for complete security hardening guide!
+
 ```bash
-# Prepare site for production
+# 1. Setup production environment with secure credentials
+just security-setup-production   # Creates .env from secure template
+just security-generate-passwords # Generate strong passwords
+# Edit .env and replace all CHANGE_ME values!
+
+# 2. Verify security configuration
+just security-audit              # Run full security check
+
+# 3. Prepare site for production
 just wp "search-replace 'localhost:8080' 'your-domain.com'"
 just db-export  # Final backup
 just uploads-backup  # Media backup
 
-# Security hardening
+# 4. Security hardening
 just wp "plugin install wordfence --activate"  # Security plugin
 just fix-permissions  # Secure file permissions
+```
+
+**Security Commands:**
+```bash
+just security-checklist          # View security checklist
+just security-verify             # Check .env credentials
+just security-test-headers       # Test nginx security headers
+just security-test-blocked       # Test blocked file paths
 ```
 
 ### **Multi-Environment Management**
