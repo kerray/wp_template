@@ -6,16 +6,15 @@ set -euo pipefail
 
 echo "Starting WordPress PHP-FPM AI Development Container..."
 echo "Versions: WP-CLI v${WP_CLI_VERSION}, Composer v${COMPOSER_VERSION}, MCP Plugin v${WP_MCP_VERSION}"
+echo "PHP-FPM will run as UID:GID ${HOST_USER_ID:-1000}:${HOST_GROUP_ID:-1000}"
 
 # Ensure wp-content directories exist with proper permissions
 mkdir -p /var/www/html/wp-content/{plugins,themes,uploads,upgrade}
 mkdir -p /var/log/php
 
-# Skip chown if running as mapped user (permissions handled by host user mapping)
-if [ "$(id -u)" != "1000" ]; then
-    chown -R www-data:www-data /var/www/html/wp-content
-    chown -R www-data:www-data /var/log/php
-fi
+# Set ownership to the host user (for bidirectional file editing)
+chown -R ${HOST_USER_ID:-1000}:${HOST_GROUP_ID:-1000} /var/www/html/wp-content 2>/dev/null || true
+chown -R ${HOST_USER_ID:-1000}:${HOST_GROUP_ID:-1000} /var/log/php 2>/dev/null || true
 chmod -R 755 /var/www/html/wp-content 2>/dev/null || true
 chmod -R 755 /var/log/php 2>/dev/null || true
 

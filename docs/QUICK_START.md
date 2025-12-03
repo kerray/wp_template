@@ -1,6 +1,6 @@
 # WordPress AI Template - Quick Start Reference
 
-## 🚀 3-Minute Setup
+## 3-Minute Setup
 
 ### New WordPress Site
 ```bash
@@ -27,7 +27,7 @@ just urls-replace "old-domain.com" "localhost:8080"
 just mcp-install
 ```
 
-## 📋 Essential Commands
+## Essential Commands
 
 ### Environment Management
 ```bash
@@ -36,6 +36,14 @@ just up         # Start WordPress environment
 just down       # Stop everything
 just rebuild    # Rebuild and restart
 just status     # Check container status
+```
+
+### Optional Services
+```bash
+just up phpmyadmin  # Start with phpMyAdmin
+just up adminer     # Start with Adminer
+just up sftp        # Start with SFTP access
+just up all         # Start with all optional services
 ```
 
 ### WordPress Management
@@ -67,39 +75,43 @@ just mcp-test-endpoints     # Test MCP API endpoints
 ```bash
 just uploads-backup         # Backup media files
 just uploads-restore file   # Restore media backup
-just fix-all-permissions   # Fix file permissions
+just fix-all-permissions    # Fix file permissions
 ```
 
-## 🔧 Tool Versions (Configurable in .env)
+## Tool Versions (Configurable in .env)
 ```bash
 COMPOSER_VERSION=2.7.1      # PHP Composer
 WP_CLI_VERSION=2.11.0       # WordPress CLI
 WP_MCP_VERSION=0.2.3        # WordPress MCP Plugin
 ```
 
-## 🌐 Access Points
+## Access Points
 - **WordPress Site**: http://localhost:8080
-- **phpMyAdmin**: http://localhost:8081
+- **phpMyAdmin**: http://localhost:8081 (localhost only, use `just up phpmyadmin`)
+- **Adminer**: http://localhost:8082 (localhost only, use `just up adminer`)
 - **WordPress Admin**: http://localhost:8080/wp-admin
 
-## 📁 Key Directories
+## Key Directories
 - `src/` - WordPress core files (live-mounted)
 - `uploads/` - Media files (persistent)
 - `backups/` - Database and file backups
+- `logs/` - Nginx and PHP logs
 - `docker/` - Custom container configuration
 
-## 🆘 Troubleshooting
+## Troubleshooting
 ```bash
-just logs wordpress         # View WordPress logs
+just logs wordpress         # View WordPress/PHP-FPM logs
+just logs nginx             # View Nginx logs
 just logs db                # View database logs
 just rebuild                # Force rebuild container
-just fix-all-permissions   # Fix permission issues
+just fix-all-permissions    # Fix permission issues
 ```
 
-## 📚 Full Documentation
+## Full Documentation
 - **Complete Guide**: `README.md`
 - **AI Instructions**: `CLAUDE.md`
-- **Container Details**: `docker/README.md`
+- **Architecture**: `docs/architecture.md`
+- **Security**: `docs/PRODUCTION_SECURITY.md`
 
 ---
-**Ready in 3 minutes:** `just setup && just build && just up` 🚀
+**Ready in 3 minutes:** `just setup && just build && just up`

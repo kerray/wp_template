@@ -11,126 +11,81 @@ default:
 
 # === Docker Environment Management ===
 
-# Build custom WordPress AI development container (Apache version)
+# Build custom WordPress PHP-FPM + Nginx containers
 build:
-    @echo "Building WordPress AI development container (Apache)..."
-    @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
-    @echo "Using host user: $(id -u):$(id -g)"
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose build --no-cache wordpress
-    @echo "Custom container built successfully!"
-
-# Build PHP-FPM + Nginx containers
-build-fpm:
     @echo "Building WordPress PHP-FPM + Nginx containers..."
     @echo "Versions: Composer ${COMPOSER_VERSION:-2.7.1}, WP-CLI ${WP_CLI_VERSION:-2.11.0}, MCP ${WP_MCP_VERSION:-0.2.3}"
     @echo "Using host user: $(id -u):$(id -g)"
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml build --no-cache wordpress
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose build --no-cache wordpress
     @echo "PHP-FPM container built successfully!"
 
 # Rebuild and restart environment
 rebuild: build
     @echo "Rebuilding and restarting environment..."
-    docker-compose down
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
+    docker compose down
+    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose up -d
     @echo "Environment rebuilt and restarted!"
 
-# Rebuild and restart PHP-FPM environment
-rebuild-fpm: build-fpm
-    @echo "Rebuilding and restarting PHP-FPM environment..."
-    docker compose -f docker-compose.fpm.yml down
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml up -d
-    @echo "PHP-FPM environment rebuilt and restarted!"
-
-# Start WordPress environment (detached mode) - Apache version
-up:
-    @echo "Starting WordPress environment (Apache)..."
-    @echo "Using host user: $(id -u):$(id -g)"
-    USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up -d
-    @echo "Environment started. WordPress: http://localhost:${WP_PORT:-8080}, phpMyAdmin: http://localhost:${PMA_PORT:-8081}"
-
-# Start WordPress PHP-FPM + Nginx environment (detached mode)
-up-fpm *profiles:
+# Start WordPress environment (detached mode) with optional profiles
+up *profiles:
     @echo "Starting WordPress PHP-FPM + Nginx environment..."
     @echo "Using host user: $(id -u):$(id -g)"
     @if [ "{{profiles}}" = "all" ]; then \
-        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile all up -d; \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --profile all up -d; \
         echo "Environment started with ALL services:"; \
         echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
         echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081}"; \
         echo "  Adminer: http://localhost:${ADMINER_PORT:-8082}"; \
         echo "  SFTP: sftp -P ${SFTP_PORT:-2222} wordpress@localhost"; \
     elif [ "{{profiles}}" = "phpmyadmin" ]; then \
-        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile phpmyadmin up -d; \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --profile phpmyadmin up -d; \
         echo "Environment started with phpMyAdmin:"; \
         echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
         echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081}"; \
     elif [ "{{profiles}}" = "adminer" ]; then \
-        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile adminer up -d; \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --profile adminer up -d; \
         echo "Environment started with Adminer:"; \
         echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
         echo "  Adminer: http://localhost:${ADMINER_PORT:-8082}"; \
     elif [ "{{profiles}}" = "sftp" ]; then \
-        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml --profile sftp up -d; \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose --profile sftp up -d; \
         echo "Environment started with SFTP:"; \
         echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
         echo "  SFTP: sftp -P ${SFTP_PORT:-2222} wordpress@localhost"; \
     else \
-        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose -f docker-compose.fpm.yml up -d; \
+        USER_ID=$(id -u) GROUP_ID=$(id -g) docker compose up -d; \
         echo "Environment started (core services only):"; \
         echo "  WordPress: http://localhost:${WP_PORT:-8080}"; \
         echo ""; \
-        echo "Optional services (use 'just up-fpm <profile>'):"; \
-        echo "  just up-fpm phpmyadmin  # Add phpMyAdmin"; \
-        echo "  just up-fpm adminer     # Add Adminer"; \
-        echo "  just up-fpm sftp        # Add SFTP access"; \
-        echo "  just up-fpm all         # Add all optional services"; \
+        echo "Optional services (use 'just up <profile>'):"; \
+        echo "  just up phpmyadmin  # Add phpMyAdmin"; \
+        echo "  just up adminer     # Add Adminer"; \
+        echo "  just up sftp        # Add SFTP access"; \
+        echo "  just up all         # Add all optional services"; \
     fi
 
 # Stop WordPress environment
 down:
     @echo "Stopping WordPress environment..."
-    docker-compose down
-
-# Stop PHP-FPM environment
-down-fpm:
-    @echo "Stopping PHP-FPM environment..."
-    docker compose -f docker-compose.fpm.yml --profile all down
+    docker compose --profile all down
 
 # Restart WordPress environment
 restart:
     @echo "Restarting WordPress environment..."
-    docker-compose restart
-
-# Restart PHP-FPM environment
-restart-fpm:
-    @echo "Restarting PHP-FPM environment..."
-    docker compose -f docker-compose.fpm.yml restart
+    docker compose restart
 
 # Show status of all containers
 status:
     @echo "Container status:"
-    docker-compose ps
-
-# Show status of PHP-FPM containers
-status-fpm:
-    @echo "PHP-FPM Container status:"
-    docker compose -f docker-compose.fpm.yml --profile all ps
+    docker compose --profile all ps
 
 # View WordPress container logs
 logs service="wordpress":
-    docker-compose logs -f {{service}}
-
-# View PHP-FPM container logs
-logs-fpm service="wordpress":
-    docker compose -f docker-compose.fpm.yml logs -f {{service}}
+    docker compose logs -f {{service}}
 
 # View logs from all containers
 logs-all:
-    docker-compose logs -f
-
-# View logs from all PHP-FPM containers
-logs-all-fpm:
-    docker compose -f docker-compose.fpm.yml --profile all logs -f
+    docker compose --profile all logs -f
 
 # === WP-CLI Operations ===
 
@@ -138,7 +93,7 @@ logs-all-fpm:
 wp-install:
     @echo "WP-CLI v${WP_CLI_VERSION:-2.11.0} is pre-installed in the custom container!"
     @echo "Testing installation..."
-    docker-compose exec wordpress wp --info --allow-root
+    docker compose exec wordpress wp --info --allow-root
     @echo "You can use: just wp \"core version\""
 
 # Run WP-CLI command (usage: just wp "core version")
@@ -155,39 +110,15 @@ wp *args:
         echo ""; \
         echo "For more WP-CLI commands, visit: https://developer.wordpress.org/cli/commands/"; \
     else \
-        if ! docker-compose ps | grep -q "wordpress.*Up"; then \
+        if ! docker compose ps | grep -q "wordpress.*Up"; then \
             echo "Warning: WordPress container does not appear to be running"; \
             echo "Starting Docker environment..."; \
-            docker-compose up -d; \
+            docker compose up -d; \
             echo "Waiting for WordPress container to be ready..."; \
             sleep 5; \
         fi; \
         echo "Running: wp {{args}}"; \
-        docker-compose exec wordpress wp {{args}} --allow-root; \
-    fi
-
-# Run WP-CLI command in PHP-FPM environment (usage: just wp-fpm "core version")
-wp-fpm *args:
-    @if [ "{{args}}" = "" ]; then \
-        echo "WordPress CLI wrapper for PHP-FPM Docker environment"; \
-        echo "Usage: just wp-fpm [wp-cli command]"; \
-        echo ""; \
-        echo "Examples:"; \
-        echo "  just wp-fpm core version                # Check WordPress version"; \
-        echo "  just wp-fpm plugin list                 # List installed plugins"; \
-        echo "  just wp-fpm cache flush                 # Flush WordPress cache"; \
-        echo ""; \
-        echo "For more WP-CLI commands, visit: https://developer.wordpress.org/cli/commands/"; \
-    else \
-        if ! docker compose -f docker-compose.fpm.yml ps | grep -q "wordpress.*Up"; then \
-            echo "Warning: WordPress PHP-FPM container does not appear to be running"; \
-            echo "Starting PHP-FPM Docker environment..."; \
-            docker compose -f docker-compose.fpm.yml up -d; \
-            echo "Waiting for WordPress container to be ready..."; \
-            sleep 5; \
-        fi; \
-        echo "Running: wp {{args}}"; \
-        docker compose -f docker-compose.fpm.yml exec wordpress wp {{args}} --allow-root; \
+        docker compose exec wordpress wp {{args}} --allow-root; \
     fi
 
 # Install and activate a WordPress plugin
@@ -253,18 +184,18 @@ urls-replace old new:
 # Export database to backups directory
 db-export:
     @mkdir -p backups
-    @timestamp=$(date +%Y-%m-%d-%H%M%S); backup_file="backups/backup-$${timestamp}.sql"; echo "Exporting database to $${backup_file}..."; docker-compose exec db mysqldump -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} > "$${backup_file}"; echo "Database exported successfully!"
+    @timestamp=$(date +%Y-%m-%d-%H%M%S); backup_file="backups/backup-$${timestamp}.sql"; echo "Exporting database to $${backup_file}..."; docker compose exec db mysqldump -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} > "$${backup_file}"; echo "Database exported successfully!"
 
 # Import database from backup file (usage: just db-import filename.sql)
 db-import file:
     @echo "Importing database from backups/{{file}}..."
-    docker-compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} < backups/{{file}}
+    docker compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} < backups/{{file}}
     @echo "Database imported successfully!"
 
 # Import compressed database backup (usage: just db-import-gz filename.sql.gz)
 db-import-gz file:
     @echo "Importing compressed database from backups/{{file}}..."
-    zcat backups/{{file}} | docker-compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress}
+    zcat backups/{{file}} | docker compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress}
     @echo "Database imported successfully!"
 
 # List available database backups
@@ -276,7 +207,7 @@ db-list-backups:
 # Test database connection
 db-test:
     @echo "Testing database connection..."
-    docker-compose exec db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} -e "SHOW DATABASES;" || echo "Database connection failed"
+    docker compose exec db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} -e "SHOW DATABASES;" || echo "Database connection failed"
 
 # === Development Operations ===
 
@@ -303,6 +234,8 @@ setup-env:
             '# Port settings' \
             'WP_PORT=8080' \
             'PMA_PORT=8081' \
+            'ADMINER_PORT=8082' \
+            'SFTP_PORT=2222' \
             '' \
             '# WordPress Debug' \
             'WP_DEBUG=true' \
@@ -311,6 +244,9 @@ setup-env:
             'COMPOSER_VERSION=2.7.1' \
             'WP_CLI_VERSION=2.11.0' \
             'WP_MCP_VERSION=0.2.3' \
+            '' \
+            '# SFTP Password (change for production!)' \
+            'SFTP_PASSWORD=wordpress' \
             > .env; \
         echo ".env file created with default settings"; \
     else \
@@ -328,17 +264,6 @@ setup-wp:
         chmod -R 755 src; \
         find src -type d -exec chmod 755 {} \;; \
         find src -type f -exec chmod 644 {} \;; \
-        printf '%s\n' \
-            '<IfModule mod_rewrite.c>' \
-            'RewriteEngine On' \
-            'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]' \
-            'RewriteBase /' \
-            'RewriteRule ^index\.php$$ - [L]' \
-            'RewriteCond %{REQUEST_FILENAME} !-f' \
-            'RewriteCond %{REQUEST_FILENAME} !-d' \
-            'RewriteRule . /index.php [L]' \
-            '</IfModule>' \
-            > src/.htaccess; \
         echo "WordPress downloaded and configured!"; \
     else \
         echo "WordPress source directory already exists"; \
@@ -387,6 +312,11 @@ setup-uploads:
         echo "Uploads directory already exists"; \
     fi
 
+# Create logs directories
+setup-logs:
+    @mkdir -p logs/nginx logs/php
+    @echo "Log directories created"
+
 # Create uploads backup
 uploads-backup:
     @if [ ! -d "uploads" ] || [ -z "$$(ls -A uploads 2>/dev/null)" ]; then \
@@ -409,15 +339,15 @@ uploads-list-backups:
     @ls -la backups/uploads-*.tar.gz 2>/dev/null || echo "No uploads backups found"
 
 # Full setup: create env, download WordPress, create directories
-setup: setup-env setup-wp setup-backups setup-uploads
-    @echo "Project setup complete! Run 'just up' to start the environment."
+setup: setup-env setup-wp setup-backups setup-uploads setup-logs
+    @echo "Project setup complete! Run 'just build && just up' to start the environment."
 
 # === Maintenance Operations ===
 
 # Clean up Docker containers and volumes
 clean:
     @echo "Cleaning up Docker containers and volumes..."
-    docker-compose down -v
+    docker compose --profile all down -v
     docker system prune -f
 
 # Reset file permissions for WordPress
@@ -431,18 +361,9 @@ fix-permissions:
 # Fix WordPress update permissions in Docker container
 fix-update-permissions:
     @echo "Fixing WordPress update permissions in Docker container..."
-    docker-compose exec wordpress bash -c "chown -R www-data:www-data /var/www/html/wp-content/"
-    docker-compose exec wordpress bash -c "chmod -R 755 /var/www/html/wp-content/"
-    docker-compose exec wordpress bash -c "mkdir -p /var/www/html/wp-content/upgrade && chown www-data:www-data /var/www/html/wp-content/upgrade && chmod 755 /var/www/html/wp-content/upgrade"
-    @echo "WordPress update permissions fixed!"
-    @echo "You can now update plugins and themes from the WordPress admin."
-
-# Fix WordPress update permissions in PHP-FPM Docker container
-fix-update-permissions-fpm:
-    @echo "Fixing WordPress update permissions in PHP-FPM Docker container..."
-    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "chown -R www-data:www-data /var/www/html/wp-content/"
-    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "chmod -R 755 /var/www/html/wp-content/"
-    docker compose -f docker-compose.fpm.yml exec wordpress sh -c "mkdir -p /var/www/html/wp-content/upgrade && chown www-data:www-data /var/www/html/wp-content/upgrade && chmod 755 /var/www/html/wp-content/upgrade"
+    docker compose exec wordpress sh -c "chown -R www-data:www-data /var/www/html/wp-content/"
+    docker compose exec wordpress sh -c "chmod -R 755 /var/www/html/wp-content/"
+    docker compose exec wordpress sh -c "mkdir -p /var/www/html/wp-content/upgrade && chown www-data:www-data /var/www/html/wp-content/upgrade && chmod 755 /var/www/html/wp-content/upgrade"
     @echo "WordPress update permissions fixed!"
     @echo "You can now update plugins and themes from the WordPress admin."
 
@@ -453,38 +374,17 @@ fix-all-permissions:
     just fix-update-permissions
     @echo "All permissions fixed!"
 
-# Fix all permissions for PHP-FPM (local + Docker container)
-fix-all-permissions-fpm:
-    @echo "Fixing all permissions for PHP-FPM (local files + Docker container)..."
-    just fix-permissions
-    just fix-update-permissions-fpm
-    @echo "All permissions fixed!"
-
 # === Information ===
 
 # Show environment information
 info:
-    @echo "WordPress AI Workspace Template"
-    @echo "==============================="
-    @echo "WordPress URL: http://localhost:${WP_PORT:-8080}"
-    @echo "phpMyAdmin URL: http://localhost:${PMA_PORT:-8081}"
-    @echo "Database: ${MYSQL_DATABASE:-wordpress}"
-    @echo "DB User: ${MYSQL_USER:-wordpress}"
-    @echo ""
-    @echo "Container Status:"
-    @docker-compose ps 2>/dev/null || echo "Docker environment not running"
-    @echo ""
-    @echo "Available commands: just --list"
-
-# Show PHP-FPM environment information
-info-fpm:
     @echo "WordPress PHP-FPM + Nginx Workspace"
     @echo "===================================="
     @echo ""
     @echo "Core Services:"
     @echo "  WordPress: http://localhost:${WP_PORT:-8080}"
     @echo ""
-    @echo "Optional Services (use 'just up-fpm <profile>'):"
+    @echo "Optional Services (use 'just up <profile>'):"
     @echo "  phpMyAdmin: http://localhost:${PMA_PORT:-8081} (--profile phpmyadmin)"
     @echo "  Adminer:    http://localhost:${ADMINER_PORT:-8082} (--profile adminer)"
     @echo "  SFTP:       sftp -P ${SFTP_PORT:-2222} wordpress@localhost (--profile sftp)"
@@ -495,14 +395,14 @@ info-fpm:
     @echo "  User: ${MYSQL_USER:-wordpress}"
     @echo ""
     @echo "Container Status:"
-    @docker compose -f docker-compose.fpm.yml --profile all ps 2>/dev/null || echo "PHP-FPM environment not running"
+    @docker compose --profile all ps 2>/dev/null || echo "Environment not running"
     @echo ""
     @echo "Commands:"
-    @echo "  just up-fpm           # Start core services"
-    @echo "  just up-fpm all       # Start all services"
-    @echo "  just down-fpm         # Stop all services"
-    @echo "  just wp-fpm \"command\" # Run WP-CLI"
-    @echo "  just logs-fpm nginx   # View nginx logs"
+    @echo "  just up             # Start core services"
+    @echo "  just up all         # Start all services"
+    @echo "  just down           # Stop all services"
+    @echo "  just wp \"command\"   # Run WP-CLI"
+    @echo "  just logs nginx     # View nginx logs"
 
 # Show help information
 help:
@@ -511,14 +411,20 @@ help:
     @echo ""
     @echo "Quick Start:"
     @echo "  just setup     # Initialize project (create .env, download WordPress)"
+    @echo "  just build     # Build custom container"
     @echo "  just up        # Start the environment"
     @echo "  just open-site # Open WordPress in browser"
     @echo ""
     @echo "Common Tasks:"
     @echo "  just status           # Check container status"
     @echo "  just logs             # View WordPress logs"
+    @echo "  just logs nginx       # View Nginx logs"
     @echo "  just wp 'core version' # Run WP-CLI commands"
     @echo "  just db-export        # Backup database"
+    @echo ""
+    @echo "Optional Services:"
+    @echo "  just up phpmyadmin   # Start with phpMyAdmin"
+    @echo "  just up all          # Start with all optional services"
     @echo ""
     @echo "For all commands: just --list"
 
@@ -579,7 +485,7 @@ mcp-update version="v0.2.3":
 wp-install-composer:
     @echo "Composer v${COMPOSER_VERSION:-2.7.1} is pre-installed in the custom container!"
     @echo "Testing installation..."
-    docker-compose exec wordpress composer --version
+    docker compose exec wordpress composer --version
     @echo "Composer is ready to use!"
 
 # Remove WordPress MCP plugin completely
@@ -916,3 +822,114 @@ security-help:
     @echo "Documentation:"
     @echo "  docs/PRODUCTION_SECURITY.md      # Detailed security guide"
     @echo "  .env.production                  # Production environment template"
+
+# === DIVI Migration Commands ===
+
+# Generate inventory of all DIVI content with complexity scoring
+divi-inventory:
+    @echo "Generating DIVI content inventory..."
+    python3 ./scripts/divi-migration/inventory.py
+
+# Export single content item (usage: just divi-export page my-page-slug)
+divi-export post_type slug:
+    python3 ./scripts/divi-migration/export.py {{post_type}} {{slug}}
+
+# Export all content of a type (usage: just divi-export-all page)
+divi-export-all post_type:
+    python3 ./scripts/divi-migration/export.py --all {{post_type}}
+
+# Convert single item (usage: just divi-convert page my-page-slug)
+divi-convert post_type slug:
+    python3 ./scripts/divi-migration/convert.py {{post_type}} {{slug}}
+
+# Batch convert all items of a complexity level (usage: just divi-convert-batch simple)
+divi-convert-batch complexity:
+    python3 ./scripts/divi-migration/convert.py --batch {{complexity}}
+
+# Dry-run batch convert to preview changes (usage: just divi-convert-batch-dry simple)
+divi-convert-batch-dry complexity:
+    python3 ./scripts/divi-migration/convert.py --batch {{complexity}} --dry-run
+
+# Publish converted content to WordPress (usage: just divi-publish page my-page-slug)
+divi-publish post_type slug:
+    python3 ./scripts/divi-migration/publish.py {{post_type}} {{slug}}
+
+# Restore original DIVI content from backup (usage: just divi-restore page my-page-slug)
+divi-restore post_type slug:
+    python3 ./scripts/divi-migration/restore.py {{post_type}} {{slug}}
+
+# Take screenshot before conversion (usage: just divi-screenshot-before page my-page-slug)
+divi-screenshot-before post_type slug:
+    ./scripts/divi-migration/screenshot.sh {{post_type}} {{slug}} before
+
+# Take screenshot after conversion (usage: just divi-screenshot-after page my-page-slug)
+divi-screenshot-after post_type slug:
+    ./scripts/divi-migration/screenshot.sh {{post_type}} {{slug}} after
+
+# Show migration status summary
+divi-status:
+    #!/usr/bin/env bash
+    echo "=== DIVI Migration Status ==="
+    echo ""
+    echo "Content directory: content/"
+    echo ""
+    if [ -d "content/pages" ]; then
+        pages=$(find content/pages -name "metadata.json" 2>/dev/null | wc -l)
+        echo "Pages exported: $pages"
+    else
+        echo "Pages exported: 0"
+    fi
+    if [ -d "content/posts" ]; then
+        posts=$(find content/posts -name "metadata.json" 2>/dev/null | wc -l)
+        echo "Posts exported: $posts"
+    else
+        echo "Posts exported: 0"
+    fi
+    if [ -d "content/akce" ]; then
+        akce=$(find content/akce -name "metadata.json" 2>/dev/null | wc -l)
+        echo "Akce exported: $akce"
+    else
+        echo "Akce exported: 0"
+    fi
+    echo ""
+    echo "By status:"
+    pending=$(find content -name "metadata.json" -exec grep -l '"status": "pending"' {} \; 2>/dev/null | wc -l)
+    echo "  Pending: $pending"
+    converted=$(find content -name "metadata.json" -exec grep -l '"status": "converted"' {} \; 2>/dev/null | wc -l)
+    echo "  Converted: $converted"
+    reviewed=$(find content -name "metadata.json" -exec grep -l '"status": "reviewed"' {} \; 2>/dev/null | wc -l)
+    echo "  Reviewed: $reviewed"
+    published=$(find content -name "metadata.json" -exec grep -l '"status": "published"' {} \; 2>/dev/null | wc -l)
+    echo "  Published: $published"
+    toohard=$(find content -name "metadata.json" -exec grep -l '"status": "too-hard"' {} \; 2>/dev/null | wc -l)
+    echo "  Too-hard: $toohard"
+
+# List content by status (usage: just divi-list pending)
+divi-list status:
+    @echo "=== Content with status: {{status}} ==="
+    @find content -name "metadata.json" -exec sh -c 'if grep -q "\"status\": \"{{status}}\"" "$$1"; then jq -r "[.post_type, .slug, .complexity] | @tsv" "$$1"; fi' _ {} \;
+
+# Show DIVI migration help
+divi-help:
+    @echo "DIVI Migration Commands"
+    @echo "======================="
+    @echo ""
+    @echo "Phase 1: Inventory & Export"
+    @echo "  just divi-inventory              # Generate inventory with complexity scoring"
+    @echo "  just divi-export <type> <slug>   # Export single item"
+    @echo "  just divi-export-all <type>      # Export all of a type (page/post/akce)"
+    @echo ""
+    @echo "Phase 2: Conversion"
+    @echo "  just divi-convert <type> <slug>  # Convert single item (TODO)"
+    @echo ""
+    @echo "Phase 3: Review & Publish"
+    @echo "  just divi-screenshot-before <type> <slug>  # Screenshot before conversion"
+    @echo "  just divi-screenshot-after <type> <slug>   # Screenshot after conversion"
+    @echo "  just divi-publish <type> <slug>            # Publish converted content"
+    @echo "  just divi-restore <type> <slug>            # Restore original from backup"
+    @echo ""
+    @echo "Status & Utilities"
+    @echo "  just divi-status                 # Show migration progress"
+    @echo "  just divi-list <status>          # List content by status"
+    @echo ""
+    @echo "Documentation: docs/DIVI_MIGRATION_PLAN.md"

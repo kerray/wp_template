@@ -5,7 +5,7 @@ FROM wordpress:6-php8.2-fpm-alpine
 # Metadata
 LABEL maintainer="WordPress AI Workspace Template"
 LABEL description="Custom WordPress PHP-FPM container with WP-CLI, Composer, and MCP plugin support"
-LABEL version="2.0.0"
+LABEL version="2.1.0"
 
 # Version environment variables (can be overridden at build time)
 ARG COMPOSER_VERSION=2.7.1
@@ -17,6 +17,8 @@ ARG GROUP_ID=1000
 ENV COMPOSER_VERSION=${COMPOSER_VERSION}
 ENV WP_CLI_VERSION=${WP_CLI_VERSION}
 ENV WP_MCP_VERSION=${WP_MCP_VERSION}
+ENV HOST_USER_ID=${USER_ID}
+ENV HOST_GROUP_ID=${GROUP_ID}
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -34,11 +36,11 @@ RUN apk add --no-cache \
 
 # Create a group and user with the same ID as the host user (for file permission sync)
 RUN if getent group ${GROUP_ID} > /dev/null 2>&1; then \
-        delgroup $(getent group ${GROUP_ID} | cut -d: -f1); \
+        delgroup $(getent group ${GROUP_ID} | cut -d: -f1) 2>/dev/null || true; \
     fi \
     && addgroup -g ${GROUP_ID} hostgroup \
     && if getent passwd ${USER_ID} > /dev/null 2>&1; then \
-        deluser $(getent passwd ${USER_ID} | cut -d: -f1); \
+        deluser $(getent passwd ${USER_ID} | cut -d: -f1) 2>/dev/null || true; \
     fi \
     && adduser -u ${USER_ID} -G hostgroup -D -s /bin/bash hostuser
 
@@ -57,7 +59,7 @@ RUN mkdir -p /var/www/html/wp-content/plugins \
     && mkdir -p /var/www/html/wp-content/upgrade \
     && mkdir -p /var/log/php
 
-# Set proper ownership for wp-content
+# Set proper ownership for wp-content (will be overridden by mount, but good for initial state)
 RUN chown -R www-data:www-data /var/www/html/wp-content \
     && chmod -R 755 /var/www/html/wp-content \
     && chown -R www-data:www-data /var/log/php
@@ -72,9 +74,9 @@ RUN cd /tmp \
     && chown -R www-data:www-data /var/www/html/wp-content/plugins/wordpress-mcp \
     && rm /tmp/wordpress-mcp.tar.gz
 
-# Create entrypoint script to handle initialization
-COPY entrypoint-fpm.sh /usr/local/bin/custom-entrypoint.sh
-RUN chmod +x /usr/local/bin/custom-entrypoint.sh
+# Configure PHP-FPM to run as host user for bidirectional file editing
+RUN sed -i "s/user = www-data/user = hostuser/" /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i "s/group = www-data/group = hostgroup/" /usr/local/etc/php-fpm.d/www.conf
 
 # Configure PHP-FPM to listen on all interfaces (needed for Docker networking)
 RUN sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /usr/local/etc/php-fpm.d/www.conf || true
@@ -83,6 +85,10 @@ RUN sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /usr/local/etc/php
 RUN echo "pm.status_path = /status" >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "ping.path = /ping" >> /usr/local/etc/php-fpm.d/www.conf \
     && echo "ping.response = pong" >> /usr/local/etc/php-fpm.d/www.conf
+
+# Create entrypoint script to handle initialization
+COPY entrypoint-fpm.sh /usr/local/bin/custom-entrypoint.sh
+RUN chmod +x /usr/local/bin/custom-entrypoint.sh
 
 # Set working directory
 WORKDIR /var/www/html
