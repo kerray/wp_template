@@ -1,0 +1,639 @@
+/**
+ * Kalendar Styles - Filterable Events Calendar
+ *
+ * Responsive calendar interface with client-side filtering
+ * Breakpoints:
+ * - Desktop: 1024px+
+ * - Tablet: 768px - 1023px
+ * - Mobile: 0 - 767px
+ */
+
+/* ==========================================================================
+   Container and Layout
+   ========================================================================== */
+
+.kalendar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ==========================================================================
+   Filter Section
+   ========================================================================== */
+
+.kalendar-filters {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.filter-header {
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-toggle {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.filter-header.collapsed .filter-toggle {
+    transform: rotate(-90deg);
+}
+
+.filter-content {
+    display: block;
+}
+
+.filter-header.collapsed + .filter-content {
+    display: none;
+}
+
+.filter-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.category-filter {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.category-filter input[type="checkbox"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+.category-filter:hover .category-badge {
+    opacity: 0.8;
+}
+
+.category-filter input[type="checkbox"]:checked + .category-badge {
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Filter Actions (Search and Export)
+   ========================================================================== */
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 200px;
+}
+
+#kalendar-search {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.2s ease;
+}
+
+#kalendar-search:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.export-button {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.export-button:hover {
+    background: #218838;
+}
+
+.export-button:active {
+    background: #1e7e34;
+}
+
+/* ==========================================================================
+   Status Bar (Counter and Today Marker)
+   ========================================================================== */
+
+.kalendar-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+}
+
+.event-counter {
+    font-size: 1em;
+    color: #666;
+}
+
+.event-counter strong {
+    color: #333;
+    font-size: 1.1em;
+}
+
+.today-marker {
+    color: #3498db;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.marker-dot {
+    font-size: 1.5em;
+    line-height: 1;
+}
+
+/* ==========================================================================
+   Events Table
+   ========================================================================== */
+
+.kalendar-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.kalendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kalendar-table thead {
+    background: #343a40;
+    color: white;
+}
+
+.kalendar-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1em;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.kalendar-container .kalendar-table td {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.kalendar-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.kalendar-table tbody tr.today-row td:first-child {
+    border-left: 4px solid #3498db;
+}
+
+/* Column Widths */
+.col-title {
+    width: 40%;
+}
+
+.col-date {
+    width: 25%;
+}
+
+.col-categories {
+    width: 35%;
+}
+
+/* Title Column */
+.event-title {
+    font-weight: 500;
+    color: #333;
+}
+
+.event-title.has-link {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.event-title.has-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.event-title.no-link {
+    color: #6c757d;
+    cursor: default;
+}
+
+/* Date Column */
+.event-date {
+    color: #555;
+    white-space: nowrap;
+}
+
+/* Categories Column */
+.event-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.event-categories .category-badge {
+    font-size: 0.85em;
+    padding: 4px 10px;
+}
+
+/* Loading State */
+.loading-row td {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   No Results Message
+   ========================================================================== */
+
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.no-results p {
+    margin: 0 0 15px 0;
+    color: #856404;
+    font-size: 1.1em;
+}
+
+.clear-filters-button {
+    padding: 10px 20px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clear-filters-button:hover {
+    background: #2980b9;
+}
+
+/* ==========================================================================
+   Archive Selector
+   ========================================================================== */
+
+.archived-notice {
+    padding: 15px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.archived-notice p {
+    margin: 0;
+    color: #0c5460;
+}
+
+.back-to-current {
+    color: #0c5460;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.back-to-current:hover {
+    text-decoration: underline;
+}
+
+.archived-selector {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.archived-button {
+    padding: 12px 24px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.archived-button:hover {
+    background: #5a6268;
+}
+
+/* Year Modal */
+.year-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.year-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.year-modal-content h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    text-align: center;
+}
+
+.year-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.year-link {
+    display: block;
+    padding: 12px;
+    background: #3498db;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.year-link:hover {
+    background: #2980b9;
+}
+
+.close-modal {
+    width: 100%;
+    padding: 10px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.close-modal:hover {
+    background: #5a6268;
+}
+
+/* ==========================================================================
+   Upcoming Mode Styles
+   ========================================================================== */
+
+/* Compact container for upcoming mode */
+.kalendar-container.kalendar-upcoming {
+    padding: 15px;
+}
+
+.kalendar-container.kalendar-upcoming .kalendar-filters {
+    margin-bottom: 15px;
+    padding: 15px;
+}
+
+/* Hide status bar in upcoming mode for cleaner look */
+.kalendar-container.kalendar-upcoming .kalendar-status {
+    display: none;
+}
+
+/* Full calendar link */
+.kalendar-full-link {
+    text-align: center;
+    padding: 20px;
+    margin-top: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+}
+
+.view-full-calendar {
+    display: inline-block;
+    padding: 12px 24px;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.view-full-calendar:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   Responsive Design - Tablet
+   ========================================================================== */
+
+@media (max-width: 1023px) {
+    .kalendar-container {
+        padding: 15px;
+    }
+
+    .kalendar-filters {
+        padding: 15px;
+    }
+
+    .filter-categories {
+        gap: 8px;
+    }
+
+    .category-badge {
+        font-size: 0.85em;
+        padding: 5px 10px;
+    }
+}
+
+/* ==========================================================================
+   Responsive Design - Mobile
+   ========================================================================== */
+
+@media (max-width: 767px) {
+    .kalendar-container {
+        padding: 10px;
+    }
+
+    /* Collapsible filters on mobile */
+    .filter-header {
+        background: #e9ecef;
+        padding: 10px;
+        margin: -20px -20px 15px -20px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .kalendar-filters {
+        padding: 20px 10px;
+    }
+
+    .filter-categories {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .category-filter {
+        width: 100%;
+    }
+
+    .category-badge {
+        flex: 1;
+        text-align: center;
+    }
+
+    .filter-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .search-box {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .export-button {
+        width: 100%;
+    }
+
+    /* Status bar stacked */
+    .kalendar-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Table becomes card layout */
+    .kalendar-table thead {
+        display: none;
+    }
+
+    .kalendar-table,
+    .kalendar-table tbody,
+    .kalendar-table tr,
+    .kalendar-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .kalendar-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .kalendar-table tbody tr.today-row td:first-child {
+        border-left: none;
+        border-top: 4px solid #3498db;
+    }
+
+    .kalendar-table td {
+        padding: 12px;
+        border-bottom: none;
+        position: relative;
+    }
+
+    .kalendar-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    /* Add data-label attributes via JavaScript */
+    .event-categories {
+        margin-top: 5px;
+    }
+
+    .year-modal-content {
+        padding: 20px;
+    }
+
+    .year-list {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 8px;
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .kalendar-filters,
+    .archived-selector,
+    .export-button {
+        display: none;
+    }
+
+    .kalendar-table {
+        box-shadow: none;
+    }
+
+    .kalendar-table tbody tr:hover {
+        background: white;
+    }
+
+    .event-categories .category-badge {
+        border: 1px solid #333;
+        color: #333 !important;
+        background: white !important;
+    }
+}
