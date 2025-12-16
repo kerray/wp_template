@@ -32,6 +32,39 @@ just open-site       # Open in browser (localhost:8080)
 
 Run `just` to see all available commands with descriptions.
 
+## FTP/Remote Site Integration
+
+Download files from live WordPress sites using FTP:
+
+### Configuration
+Add to your `.env` file:
+```bash
+FTP_HOST=ftp.example.com
+FTP_USER=ftpuser
+FTP_PASSWORD=ftppassword
+FTP_PATH=/public_html
+```
+
+### Commands
+| Task | Command |
+|------|---------|
+| Test connection | `just ftp-test` |
+| List remote plugins | `just ftp-list-plugins` |
+| List remote themes | `just ftp-list-themes` |
+| Download all plugins | `just ftp-download-plugins` |
+| Download all themes | `just ftp-download-themes` |
+| Download specific plugin | `just ftp-download-plugin <name>` |
+| Download specific theme | `just ftp-download-theme <name>` |
+| Download uploads (careful!) | `just ftp-download-uploads` |
+| Show FTP help | `just ftp-help` |
+
+Downloaded files are placed in:
+- `src/wp-content/plugins_remote/`
+- `src/wp-content/themes_remote/`
+- `uploads_remote/`
+
+After downloading, manually copy needed files to the active directories.
+
 ## Skills (Auto-Invoked)
 
 Claude automatically uses these skills when relevant:

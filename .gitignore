@@ -35,6 +35,20 @@ src/.htaccess
 src/wp-content/wp-defender-secrets.php
 src/wp-content/.defender-curiosity-quarantine
 
+# WordPress core files
+src/*.php
+src/wp-admin/
+src/wp-includes/
+src/index.php
+src/license.txt
+src/readme.html
+src/wp-*.php
+src/xmlrpc.php
+
+# Allow wp-content (themes and plugins)
+!src/wp-content/
+!src/wp-content/**
+
 # Environment files
 .env
 .env.*

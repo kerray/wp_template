@@ -823,6 +823,100 @@ security-help:
     @echo "  docs/PRODUCTION_SECURITY.md      # Detailed security guide"
     @echo "  .env.production                  # Production environment template"
 
+# === FTP/Remote Site Commands ===
+
+# Test FTP connection
+ftp-test:
+    @echo "Testing FTP connection..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP_HOST not set in .env"; exit 1; fi
+    @lftp -c "set ssl:verify-certificate no; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; ls -la; bye" 2>&1 | head -10
+    @echo "FTP connection test complete"
+
+# List remote plugins
+ftp-list-plugins:
+    @echo "Listing plugins on remote site..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @lftp -c "set ssl:verify-certificate no; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/plugins 2>/dev/null || cd ${FTP_PATH}/plugins; ls -la; bye" 2>&1
+
+# List remote themes
+ftp-list-themes:
+    @echo "Listing themes on remote site..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @lftp -c "set ssl:verify-certificate no; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/themes 2>/dev/null || cd ${FTP_PATH}/themes; ls -la; bye" 2>&1
+
+# Download all plugins from remote site
+ftp-download-plugins:
+    @echo "Downloading plugins from remote site..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @mkdir -p src/wp-content/plugins_remote
+    @echo "Connecting to ${FTP_HOST}..."
+    @lftp -c "set ssl:verify-certificate no; set net:timeout 60; set net:max-retries 2; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/plugins 2>/dev/null || cd ${FTP_PATH}/plugins; lcd src/wp-content/plugins_remote; mirror --parallel=3 --only-newer --verbose .; bye"
+    @echo "Plugins downloaded to src/wp-content/plugins_remote/"
+
+# Download all themes from remote site
+ftp-download-themes:
+    @echo "Downloading themes from remote site..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @mkdir -p src/wp-content/themes_remote
+    @echo "Connecting to ${FTP_HOST}..."
+    @lftp -c "set ssl:verify-certificate no; set net:timeout 60; set net:max-retries 2; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/themes 2>/dev/null || cd ${FTP_PATH}/themes; lcd src/wp-content/themes_remote; mirror --parallel=3 --only-newer --verbose .; bye"
+    @echo "Themes downloaded to src/wp-content/themes_remote/"
+
+# Download specific plugin (usage: just ftp-download-plugin plugin-name)
+ftp-download-plugin plugin:
+    @echo "Downloading plugin: {{plugin}}..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @mkdir -p src/wp-content/plugins_remote
+    @lftp -c "set ssl:verify-certificate no; set net:timeout 60; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/plugins 2>/dev/null || cd ${FTP_PATH}/plugins; lcd src/wp-content/plugins_remote; mirror --parallel=3 {{plugin}} {{plugin}}; bye"
+    @echo "Plugin downloaded to src/wp-content/plugins_remote/{{plugin}}"
+
+# Download specific theme (usage: just ftp-download-theme theme-name)
+ftp-download-theme theme:
+    @echo "Downloading theme: {{theme}}..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @mkdir -p src/wp-content/themes_remote
+    @lftp -c "set ssl:verify-certificate no; set net:timeout 60; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/themes 2>/dev/null || cd ${FTP_PATH}/themes; lcd src/wp-content/themes_remote; mirror --parallel=3 {{theme}} {{theme}}; bye"
+    @echo "Theme downloaded to src/wp-content/themes_remote/{{theme}}"
+
+# Download uploads/media files (WARNING: Can be large!)
+ftp-download-uploads:
+    @echo "WARNING: Uploads directory can be very large!"
+    @echo "Press Ctrl+C to cancel, or Enter to continue..."
+    @read _
+    @echo "Downloading uploads from remote site..."
+    @if [ -z "$FTP_HOST" ]; then echo "Error: FTP configuration not found in .env"; exit 1; fi
+    @mkdir -p uploads_remote
+    @lftp -c "set ssl:verify-certificate no; set net:timeout 60; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; cd ${FTP_PATH}/wp-content/uploads 2>/dev/null || cd ${FTP_PATH}/uploads; lcd uploads_remote; mirror --parallel=3 --only-newer --verbose .; bye"
+    @echo "Uploads downloaded to uploads_remote/"
+
+# Show FTP download help
+ftp-help:
+    @echo "FTP/Remote Site Commands"
+    @echo "========================"
+    @echo ""
+    @echo "Configuration (.env file):"
+    @echo "  FTP_HOST=ftp.example.com"
+    @echo "  FTP_USER=username"
+    @echo "  FTP_PASSWORD=password"
+    @echo "  FTP_PATH=/public_html"
+    @echo ""
+    @echo "Commands:"
+    @echo "  just ftp-test                    # Test FTP connection"
+    @echo "  just ftp-list-plugins            # List remote plugins"
+    @echo "  just ftp-list-themes             # List remote themes"
+    @echo "  just ftp-download-plugins        # Download all plugins"
+    @echo "  just ftp-download-themes         # Download all themes"
+    @echo "  just ftp-download-plugin <name>  # Download specific plugin"
+    @echo "  just ftp-download-theme <name>   # Download specific theme"
+    @echo "  just ftp-download-uploads        # Download media files (WARNING: Large!)"
+    @echo ""
+    @echo "Downloaded files go to:"
+    @echo "  - src/wp-content/plugins_remote/"
+    @echo "  - src/wp-content/themes_remote/"
+    @echo "  - uploads_remote/"
+    @echo ""
+    @echo "After downloading, manually copy needed files to the active directories."
+
 # === DIVI Migration Commands ===
 
 # Generate inventory of all DIVI content with complexity scoring
