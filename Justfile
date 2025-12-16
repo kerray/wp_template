@@ -917,6 +917,130 @@ ftp-help:
     @echo ""
     @echo "After downloading, manually copy needed files to the active directories."
 
+# === Snapshot Backup Commands ===
+
+# List contents of a Snapshot backup (usage: just snapshot-list backup.zip)
+snapshot-list backup:
+    @echo "Contents of Snapshot backup: {{backup}}"
+    @unzip -l backups/{{backup}} | head -50
+    @echo ""
+    @echo "Database tables:"
+    @unzip -l backups/{{backup}} | grep "sql/.*\.sql$" | awk '{print "  - " $$4}' | sort
+    @echo ""
+    @echo "Total files:"
+    @unzip -l backups/{{backup}} | tail -1
+
+# Extract Snapshot backup to temporary directory (usage: just snapshot-extract backup.zip)
+snapshot-extract backup:
+    @echo "Extracting Snapshot backup: {{backup}}..."
+    @mkdir -p backups/snapshot_extract
+    @unzip -o backups/{{backup}} -d backups/snapshot_extract/
+    @echo "Extracted to backups/snapshot_extract/"
+    @echo ""
+    @ls -la backups/snapshot_extract/
+
+# Restore database from Snapshot backup (usage: just snapshot-restore-db backup.zip)
+snapshot-restore-db backup:
+    @echo "Restoring database from Snapshot backup: {{backup}}..."
+    @mkdir -p backups/snapshot_temp
+    @unzip -o backups/{{backup}} sql/* -d backups/snapshot_temp/ 2>/dev/null || true
+    @if [ -d "backups/snapshot_temp/sql" ]; then \
+        echo "Creating combined SQL file..."; \
+        cat backups/snapshot_temp/sql/*.sql > backups/snapshot_temp/combined_restore.sql 2>/dev/null; \
+        echo "Importing database..."; \
+        docker compose exec -T db mysql -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} < backups/snapshot_temp/combined_restore.sql; \
+        echo "Database restored successfully!"; \
+        rm -rf backups/snapshot_temp; \
+    else \
+        echo "Error: No SQL files found in backup!"; \
+        rm -rf backups/snapshot_temp; \
+        exit 1; \
+    fi
+
+# Restore files from Snapshot backup (usage: just snapshot-restore-files backup.zip)
+snapshot-restore-files backup:
+    @echo "WARNING: This will overwrite existing WordPress files!"
+    @echo "Press Ctrl+C to cancel, or Enter to continue..."
+    @read _
+    @echo "Extracting files from Snapshot backup: {{backup}}..."
+    @mkdir -p backups/snapshot_temp
+    @unzip -o backups/{{backup}} www/* -d backups/snapshot_temp/ 2>/dev/null || true
+    @if [ -d "backups/snapshot_temp/www" ]; then \
+        echo "Backing up current files..."; \
+        timestamp=$$(date +%Y%m%d_%H%M%S); \
+        mkdir -p backups/files_backup_$$timestamp; \
+        cp -r src/* backups/files_backup_$$timestamp/ 2>/dev/null || true; \
+        echo "Restoring WordPress files..."; \
+        cp -r backups/snapshot_temp/www/* src/ 2>/dev/null || true; \
+        echo "Files restored successfully!"; \
+        echo "Previous files backed up to: backups/files_backup_$$timestamp/"; \
+        rm -rf backups/snapshot_temp; \
+    else \
+        echo "Error: No www files found in backup!"; \
+        rm -rf backups/snapshot_temp; \
+        exit 1; \
+    fi
+
+# Restore specific plugin from Snapshot backup (usage: just snapshot-restore-plugin backup.zip plugin-name)
+snapshot-restore-plugin backup plugin:
+    @echo "Restoring plugin '{{plugin}}' from Snapshot backup..."
+    @mkdir -p backups/snapshot_temp
+    @unzip -o backups/{{backup}} "www/wp-content/plugins/{{plugin}}/*" -d backups/snapshot_temp/ 2>/dev/null || true
+    @if [ -d "backups/snapshot_temp/www/wp-content/plugins/{{plugin}}" ]; then \
+        mkdir -p src/wp-content/plugins; \
+        rm -rf src/wp-content/plugins/{{plugin}}; \
+        cp -r backups/snapshot_temp/www/wp-content/plugins/{{plugin}} src/wp-content/plugins/; \
+        echo "Plugin '{{plugin}}' restored successfully!"; \
+        rm -rf backups/snapshot_temp; \
+    else \
+        echo "Error: Plugin '{{plugin}}' not found in backup!"; \
+        rm -rf backups/snapshot_temp; \
+        exit 1; \
+    fi
+
+# Restore specific theme from Snapshot backup (usage: just snapshot-restore-theme backup.zip theme-name)
+snapshot-restore-theme backup theme:
+    @echo "Restoring theme '{{theme}}' from Snapshot backup..."
+    @mkdir -p backups/snapshot_temp
+    @unzip -o backups/{{backup}} "www/wp-content/themes/{{theme}}/*" -d backups/snapshot_temp/ 2>/dev/null || true
+    @if [ -d "backups/snapshot_temp/www/wp-content/themes/{{theme}}" ]; then \
+        mkdir -p src/wp-content/themes; \
+        rm -rf src/wp-content/themes/{{theme}}; \
+        cp -r backups/snapshot_temp/www/wp-content/themes/{{theme}} src/wp-content/themes/; \
+        echo "Theme '{{theme}}' restored successfully!"; \
+        rm -rf backups/snapshot_temp; \
+    else \
+        echo "Error: Theme '{{theme}}' not found in backup!"; \
+        rm -rf backups/snapshot_temp; \
+        exit 1; \
+    fi
+
+# Show Snapshot backup help
+snapshot-help:
+    @echo "WPMUDEV Snapshot Backup Commands"
+    @echo "================================"
+    @echo ""
+    @echo "Snapshot creates a single ZIP file containing:"
+    @echo "  - sql/       Individual SQL files for each database table"
+    @echo "  - www/       Complete WordPress files structure"
+    @echo "  - manifest   Backup metadata files"
+    @echo ""
+    @echo "Commands:"
+    @echo "  just snapshot-list <backup.zip>           # List backup contents"
+    @echo "  just snapshot-extract <backup.zip>        # Extract to temporary directory"
+    @echo "  just snapshot-restore-db <backup.zip>     # Restore database"
+    @echo "  just snapshot-restore-files <backup.zip>  # Restore all WordPress files"
+    @echo "  just snapshot-restore-plugin <backup.zip> <plugin>  # Restore specific plugin"
+    @echo "  just snapshot-restore-theme <backup.zip> <theme>    # Restore specific theme"
+    @echo ""
+    @echo "Example workflow:"
+    @echo "  1. just snapshot-list my-backup.zip       # Check contents"
+    @echo "  2. just db-export                         # Backup current database"
+    @echo "  3. just snapshot-restore-db my-backup.zip # Restore database"
+    @echo "  4. just snapshot-restore-plugin my-backup.zip generatepress"
+    @echo ""
+    @echo "Note: Snapshot backups should be placed in the backups/ directory."
+
 # === DIVI Migration Commands ===
 
 # Generate inventory of all DIVI content with complexity scoring

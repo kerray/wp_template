@@ -29,6 +29,7 @@ just open-site       # Open in browser (localhost:8080)
 | Import database | `just db-import file.sql` |
 | Fix permissions | `just fix-all-permissions` |
 | UpdraftPlus restore | `just restore-from-updraft prefix` |
+| Snapshot restore | `just snapshot-restore-db backup.zip` |
 
 Run `just` to see all available commands with descriptions.
 
@@ -64,6 +65,44 @@ Downloaded files are placed in:
 - `uploads_remote/`
 
 After downloading, manually copy needed files to the active directories.
+
+## WPMUDEV Snapshot Backup Restore
+
+Restore WordPress sites from WPMUDEV Snapshot backups:
+
+### Backup Format
+Snapshot creates a single ZIP file containing:
+- `sql/` - Individual SQL files for each database table
+- `www/` - Complete WordPress files structure
+- `manifest.csv` & `manifest.json` - Backup metadata
+
+### Commands
+| Task | Command |
+|------|---------|
+| List backup contents | `just snapshot-list backup.zip` |
+| Extract to temp directory | `just snapshot-extract backup.zip` |
+| Restore database | `just snapshot-restore-db backup.zip` |
+| Restore all files | `just snapshot-restore-files backup.zip` |
+| Restore specific plugin | `just snapshot-restore-plugin backup.zip plugin-name` |
+| Restore specific theme | `just snapshot-restore-theme backup.zip theme-name` |
+| Show help | `just snapshot-help` |
+
+### Example Workflow
+```bash
+# 1. Check backup contents
+just snapshot-list goodkarma_backup.zip
+
+# 2. Backup current database
+just db-export
+
+# 3. Restore database from Snapshot
+just snapshot-restore-db goodkarma_backup.zip
+
+# 4. Restore specific plugin
+just snapshot-restore-plugin goodkarma_backup.zip generatepress
+```
+
+**Note**: Place Snapshot backup files in the `backups/` directory.
 
 ## Skills (Auto-Invoked)
 
