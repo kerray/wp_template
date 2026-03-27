@@ -154,6 +154,52 @@ src/wp-content/themes/generatepress-child/
 └── style.css       # CSS overrides
 ```
 
+## Using BrowserMCP with WordPress Customizer
+
+For settings that are difficult to configure via database or WP-CLI, you can use BrowserMCP to interact with the WordPress Customizer directly:
+
+1. Navigate to `http://localhost:8080/wp-admin/customize.php`
+2. Use `browser_snapshot` to see the Customizer sidebar
+3. Click through the sidebar options using `browser_click`
+4. Interact with color pickers, sliders, and other controls
+5. Click "Publish" to save changes
+
+This is particularly useful for:
+- Complex color configurations with live preview
+- Typography settings with Google Fonts
+- Layout options that require visual feedback
+- Settings that trigger JavaScript-based controls
+
+## CSS Specificity Notes
+
+### Customizer CSS vs Child Theme CSS
+
+**Customizer CSS has HIGHER specificity** than child theme style.css. Use Customizer CSS (via "Additional CSS" or `wp_update_custom_css_post()`) for:
+- Background images that need to override GeneratePress defaults
+- Styles that compete with GeneratePress inline styles
+- Critical visual fixes that must always apply
+
+```php
+// Programmatically set Customizer CSS
+$custom_css = "body { background-image: url('/path/to/image.jpg'); }";
+wp_update_custom_css_post($custom_css);
+```
+
+### Child Theme CSS
+
+Use child theme `style.css` for:
+- General styling that doesn't compete with inline styles
+- Custom classes you add to blocks
+- Typography and color tweaks
+- Responsive adjustments
+
+### Inline Styles (Block-level)
+
+Setting styles directly in Gutenberg block attributes has the HIGHEST specificity. For color/background issues:
+1. First try: Block-level settings in Gutenberg editor
+2. Second try: Customizer CSS
+3. Last resort: Child theme CSS with `!important`
+
 ## Source Code Reference
 
 Theme files in `src/wp-content/themes/generatepress/`:

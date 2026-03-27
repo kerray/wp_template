@@ -909,6 +909,9 @@ ftp-help:
     @echo "  just ftp-download-plugin <name>  # Download specific plugin"
     @echo "  just ftp-download-theme <name>   # Download specific theme"
     @echo "  just ftp-download-uploads        # Download media files (WARNING: Large!)"
+    @echo "  just ftp-sync                    # Smart mirror wp-content (excludes caches/resized)"
+    @echo "  just ftp-sync dry                # Dry run - preview what would be synced"
+    @echo "  just ftp-sync-folder <folder>    # Sync specific wp-content subfolder"
     @echo ""
     @echo "Downloaded files go to:"
     @echo "  - src/wp-content/plugins_remote/"
@@ -916,6 +919,50 @@ ftp-help:
     @echo "  - uploads_remote/"
     @echo ""
     @echo "After downloading, manually copy needed files to the active directories."
+
+# Smart mirror wp-content from production (excludes caches, backups, uploads)
+# Usage: just ftp-sync         (sync)
+#        just ftp-sync dry     (preview only)
+# Add plugin-specific cache dirs to the exclude list as needed.
+ftp-sync *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "${FTP_HOST:-}" ] || [ -z "${FTP_USER:-}" ] || [ -z "${FTP_PASSWORD:-}" ] || [ -z "${FTP_PATH:-}" ]; then
+        echo "Error: FTP_HOST, FTP_USER, FTP_PASSWORD, FTP_PATH must be set in .env"
+        exit 1
+    fi
+    # Generic WordPress excludes (add plugin-specific cache dirs as needed)
+    EXCLUDES="--exclude cache/ --exclude updraft/ --exclude upgrade/ --exclude upgrade-temp-backup/"
+    EXCLUDES="$EXCLUDES --exclude backup-db/ --exclude backups/ --exclude uploads/ --exclude debug.log"
+    DRY=""
+    if echo "{{args}}" | grep -q "dry"; then
+        DRY="--dry-run"
+        echo "=== DRY RUN - no files will be downloaded ==="
+    fi
+    echo "Syncing ${FTP_PATH}/wp-content/ → src/wp-content/"
+    lftp -c "set ssl:verify-certificate no; set net:timeout 60; set net:max-retries 2; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; mirror --only-newer --parallel=3 --verbose $DRY $EXCLUDES ${FTP_PATH}/wp-content/ src/wp-content/; bye"
+    echo "Done!"
+
+# Sync a specific wp-content subfolder from production (no exclusions)
+# Usage: just ftp-sync-folder plugins
+#        just ftp-sync-folder themes dry
+ftp-sync-folder folder *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "${FTP_HOST:-}" ] || [ -z "${FTP_USER:-}" ] || [ -z "${FTP_PASSWORD:-}" ] || [ -z "${FTP_PATH:-}" ]; then
+        echo "Error: FTP_HOST, FTP_USER, FTP_PASSWORD, FTP_PATH must be set in .env"
+        exit 1
+    fi
+    FOLDER="{{folder}}"
+    FOLDER="${FOLDER%/}"
+    DRY=""
+    if echo "{{args}}" | grep -q "dry"; then
+        DRY="--dry-run"
+        echo "=== DRY RUN - no files will be downloaded ==="
+    fi
+    echo "Syncing ${FTP_PATH}/wp-content/${FOLDER}/ → src/wp-content/${FOLDER}/"
+    lftp -c "set ssl:verify-certificate no; set net:timeout 60; set net:max-retries 2; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; mirror --only-newer --parallel=3 --verbose $DRY ${FTP_PATH}/wp-content/${FOLDER}/ src/wp-content/${FOLDER}/; bye"
+    echo "Done!"
 
 # === Snapshot Backup Commands ===
 

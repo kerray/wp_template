@@ -28,6 +28,8 @@ just open-site       # Open in browser (localhost:8080)
 | Export database | `just db-export` |
 | Import database | `just db-import file.sql` |
 | Fix permissions | `just fix-all-permissions` |
+| Sync production | `just ftp-sync` |
+| Sync (dry run) | `just ftp-sync dry` |
 | UpdraftPlus restore | `just restore-from-updraft prefix` |
 | Snapshot restore | `just snapshot-restore-db backup.zip` |
 
@@ -57,6 +59,8 @@ FTP_PATH=/public_html
 | Download specific plugin | `just ftp-download-plugin <name>` |
 | Download specific theme | `just ftp-download-theme <name>` |
 | Download uploads (careful!) | `just ftp-download-uploads` |
+| Smart sync wp-content | `just ftp-sync` |
+| Sync specific folder | `just ftp-sync-folder plugins` |
 | Show FTP help | `just ftp-help` |
 
 Downloaded files are placed in:

@@ -132,6 +132,26 @@ just db-test          # Test connection
 just logs db          # Check database logs
 ```
 
+## Docker Uploads Volume Mapping
+
+**Important**: The docker-compose.yml mounts `./uploads` to `/var/www/html/wp-content/uploads`. This is SEPARATE from `./src/wp-content/uploads`.
+
+When images show 404 errors:
+1. Check if images exist in the Docker-mounted path: `./uploads/`
+2. If images are in `./src/wp-content/uploads/`, copy them to `./uploads/`
+3. Create year/month subdirectories as needed: `uploads/2021/08/`, `uploads/2018/05/`, etc.
+
+```bash
+# Copy images to Docker-mounted uploads
+mkdir -p uploads/2021/08
+cp src/wp-content/uploads/2021/08/image.jpg uploads/2021/08/
+
+# Or use docker cp directly
+docker cp local-file.jpg wordpress:/var/www/html/wp-content/uploads/path/
+```
+
+**Special Characters in Filenames**: Files with non-ASCII characters (diacritics, umlauts, etc.) may cause 404 errors. Rename files to use ASCII characters only and update references in the database.
+
 ## Documentation References
 
 - [Architecture](../../../docs/architecture.md) - Technical details

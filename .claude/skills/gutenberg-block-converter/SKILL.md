@@ -298,6 +298,32 @@ Or create custom gradient in theme.json
 - **Custom JavaScript**: Flag functionality that requires additional JavaScript
 - **Tabs**: No native Gutenberg equivalent - recommend Kadence Blocks plugin
 
+## Text Color on Colored Backgrounds
+
+**Important**: When blocks have colored backgrounds, CSS/JavaScript fixes may not work reliably due to WordPress inline styles having high specificity.
+
+**Best approach**: Set text color directly in the block settings:
+1. Open the page in Gutenberg editor
+2. Select the Group block with the colored background
+3. In sidebar > Block > Color > Text, choose a contrasting color
+4. Save the page
+
+This approach:
+- Works reliably because it sets the color in the block attributes
+- Survives theme changes
+- Is more maintainable than CSS overrides
+- Avoids JavaScript timing issues
+
+**CSS fallback** (less reliable):
+```css
+/* Target elements with inline colored background */
+html body [style*="background-color"] * {
+    color: #ffffff !important;
+}
+```
+
+**WordPress detects contrast issues**: The editor shows a warning when there are accessibility concerns with color combinations.
+
 ## Tools and Resources
 
 - Gutenberg block reference: https://developer.wordpress.org/block-editor/
