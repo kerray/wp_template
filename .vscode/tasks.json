@@ -1,0 +1,279 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start WordPress Environment",
+			"type": "shell",
+			"command": "just",
+			"args": ["up"],
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Start the WordPress Docker environment using Just"
+		},
+		{
+			"label": "Stop WordPress Environment",
+			"type": "shell",
+			"command": "just",
+			"args": ["down"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Stop the WordPress Docker environment using Just"
+		},
+		{
+			"label": "Restart WordPress Environment",
+			"type": "shell",
+			"command": "just",
+			"args": ["restart"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Restart the WordPress Docker environment using Just"
+		},
+		{
+			"label": "View WordPress Logs",
+			"type": "shell",
+			"command": "just",
+			"args": ["logs", "wordpress"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from the WordPress container using Just"
+		},
+		{
+			"label": "View Database Logs",
+			"type": "shell",
+			"command": "just",
+			"args": ["logs", "db"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from the database container using Just"
+		},
+		{
+			"label": "View All Logs",
+			"type": "shell",
+			"command": "just",
+			"args": ["logs-all"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"detail": "View logs from all containers using Just"
+		},
+		{
+			"label": "Container Status",
+			"type": "shell",
+			"command": "just",
+			"args": ["status"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show Docker container status using Just"
+		},
+		{
+			"label": "Open WordPress Site",
+			"type": "shell",
+			"command": "just",
+			"args": ["open-site"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent"
+			},
+			"detail": "Open the WordPress site in your default browser using Just"
+		},
+		{
+			"label": "Open phpMyAdmin",
+			"type": "shell",
+			"command": "just",
+			"args": ["open-phpmyadmin"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent"
+			},
+			"detail": "Open phpMyAdmin in your default browser using Just"
+		},
+		{
+			"label": "Run WP-CLI Command",
+			"type": "shell",
+			"command": "just",
+			"args": ["wp", "${input:wpCliCommand}"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Run a WP-CLI command using Just"
+		},
+		{
+			"label": "WordPress Core Version",
+			"type": "shell",
+			"command": "just",
+			"args": ["core-version"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Check WordPress core version using Just"
+		},
+		{
+			"label": "List Plugins",
+			"type": "shell",
+			"command": "just",
+			"args": ["plugin-list"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "List all WordPress plugins using Just"
+		},
+		{
+			"label": "Install WordPress Plugin",
+			"type": "shell",
+			"command": "just",
+			"args": ["plugin-install", "${input:pluginName}"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Install and activate a WordPress plugin using Just"
+		},
+		{
+			"label": "Update All Plugins",
+			"type": "shell",
+			"command": "just",
+			"args": ["plugin-update-all"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Update all WordPress plugins using Just"
+		},
+		{
+			"label": "Update WordPress Core",
+			"type": "shell",
+			"command": "just",
+			"args": ["core-update"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Update WordPress core using Just"
+		},
+		{
+			"label": "Export Database",
+			"type": "shell",
+			"command": "just",
+			"args": ["db-export"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Export the WordPress database using Just"
+		},
+		{
+			"label": "List Database Backups",
+			"type": "shell",
+			"command": "just",
+			"args": ["db-list-backups"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "List available database backups using Just"
+		},
+		{
+			"label": "Import Database",
+			"type": "shell",
+			"command": "just",
+			"args": ["db-import", "${input:backupFile}"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Import a database backup using Just"
+		},
+		{
+			"label": "Project Setup",
+			"type": "shell",
+			"command": "just",
+			"args": ["setup"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Complete project setup (env, WordPress download, backups dir) using Just"
+		},
+		{
+			"label": "Project Info",
+			"type": "shell",
+			"command": "just",
+			"args": ["info"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show project information using Just"
+		},
+		{
+			"label": "Show Available Commands",
+			"type": "shell",
+			"command": "just",
+			"args": ["--list"],
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "new"
+			},
+			"detail": "Show all available Just commands"
+		}
+	],
+	"inputs": [
+		{
+			"id": "wpCliCommand",
+			"description": "WP-CLI Command",
+			"default": "core version",
+			"type": "promptString"
+		},
+		{
+			"id": "pluginName",
+			"description": "Plugin Name or URL",
+			"default": "",
+			"type": "promptString"
+		},
+		{
+			"id": "backupFile",
+			"description": "Backup filename (e.g., backup-2024-01-01.sql)",
+			"default": "",
+			"type": "promptString"
+		}
+	]
+}

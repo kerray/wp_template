@@ -1,0 +1,134 @@
+# Windows-specific files
+*Zone.Identifier
+*Zone - kopie.Identifier
+
+# Python
+__pycache__/
+*.pyc
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+
+# IDE and editor files
+.idea/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# WordPress specific
+src/wp-config.php
+src/wp-content/uploads/
+src/wp-content/upgrade/
+src/wp-content/backup-db/
+src/wp-content/cache/
+src/wp-content/backups/
+src/.htaccess
+src/wp-content/wp-defender-secrets.php
+src/wp-content/.defender-curiosity-quarantine
+
+# WordPress core files
+src/*.php
+src/wp-admin/
+src/wp-includes/
+src/index.php
+src/license.txt
+src/readme.html
+src/wp-*.php
+src/xmlrpc.php
+
+# wp-content: plugins and themes are NOT tracked here.
+# They live in the private overlay repo instead (premium/licensed plugins +
+# the site-specific child theme): https://github.com/kerray/wp_private
+# Only the placeholder READMEs are kept.
+src/wp-content/plugins/*
+!src/wp-content/plugins/README.md
+src/wp-content/themes/*
+!src/wp-content/themes/README.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.production
+
+# Database backups
+backups/*.sql
+backups/*.sql.gz
+backups/*.sql.zip
+
+# Uploads backups (media files)
+backups/uploads-*.tar.gz
+
+# WordPress uploads directory (media files)
+uploads/
+!uploads/README.md
+
+# Docker volumes
+db_data/
+
+# WordPress resized images
+*-[0-9]*x[0-9]*.jpg
+*-[0-9]*x[0-9]*.jpeg
+*-[0-9]*x[0-9]*.png
+*-[0-9]*x[0-9]*.gif
+*-[0-9]*x[0-9]*.webp
+*-scaled.jpg
+*-scaled.jpeg
+*-scaled.png
+*-rotated.jpg
+*-rotated.jpeg
+*-rotated.png
+
+# WordPress temporary files
+*.tmp
+*_temp
+*.temp
+src/www/tmp/
+src/www/.htaccess_temp
+
+# WordPress cache
+src/www/wp-content/cache/
+src/www/wp-content/w3tc-config/
+src/www/wp-content/advanced-cache.php
+src/www/wp-content/object-cache.php
+
+# WordPress backups
+src/www/wp-content/updraft/
+src/www/wp-content/upgrade/
+src/www/wp-content/backup*/
+src/www/wp-content/uploads/snapshot-backups/
+src/www/wp-content/uploads/iw-backup/
+
+# Archive files
+*.zip
+*.gz
+*.tar
+*.rar
+src/www/html.zip
+
+# Other WordPress generated files
+src/www/wp-content/debug.log
+src/www/wp-content/uploads/wc-logs/
+src/www/wp-content/uploads/woocommerce_uploads/
+src/www/wp-content/upgrade-temp-backup/
+
+# Session files
+src/session/
+
+wp-sites.json
+
+# Exported site content (flat files from scripts/content-sync and divi-migration)
+content/

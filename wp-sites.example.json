@@ -1,0 +1,14 @@
+{
+	"local": {
+		"URL": "http://localhost:8080",
+		"USER": "admin",
+		"PASS": "admin_password",
+		"authType": "basic"
+	},
+	"prod": {
+		"URL": "https://example.com",
+		"USER": "your-username",
+		"PASS": "/wp-admin/profile.php -> app passwords on bottom",
+		"authType": "basic"
+	}
+}
