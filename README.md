@@ -4,6 +4,15 @@
 
 This template provides a modern, Docker-based WordPress development setup that AI agents can easily understand, configure, and manage. Perfect for both beginners and experienced developers who want to work with AI assistance.
 
+> **⚠️ Heads up: this template is opinionated.** It bakes in specific choices — Docker
+> with nginx + PHP-FPM, [Just](https://github.com/casey/just) as the task runner, WP-CLI
+> for everything, a particular project layout, and workflows geared toward AI agents
+> (Claude Code in particular). It also ships migration/tooling (DIVI→Gutenberg,
+> content export/import, backup restore) you may not need. It's meant as a strong
+> starting point reflecting one way of working, not a neutral, minimal base — expect to
+> remove or adapt parts that don't fit your stack. Plugins and themes are intentionally
+> **not** included (see [`src/wp-content/plugins/README.md`](src/wp-content/plugins/README.md)).
+
 ---
 
 ## **IMPORTANT: Production Security**
