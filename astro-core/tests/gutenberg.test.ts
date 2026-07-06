@@ -100,12 +100,20 @@ describe('gutenbergAdapter — real + edge fixtures', () => {
     expect(hist.paragraph).toBeGreaterThan(0);
   });
 
-  it('passes a core/shortcode through as HtmlNode with a warning', () => {
+  it('strips an unhandled core/shortcode ([kalendar]) and warns', () => {
     const raw = loadFixture('gutenberg', 'kalendar-shortcode.gutenberg.html');
     const { warn, warnings } = collectWarnings();
     const tree = gutenbergAdapter(raw, { warn });
-    expect(tree.some((n) => n.type === 'html')).toBe(true);
+    // A page whose only body is a server-side shortcode renders to nothing —
+    // the literal `[kalendar]` must NOT survive into the static output.
+    expect(JSON.stringify(tree)).not.toContain('[kalendar]');
     expect(warnings.some((w) => w.toLowerCase().includes('shortcode'))).toBe(true);
+  });
+
+  it('keeps a core/shortcode listed in keepShortcodes verbatim', () => {
+    const raw = loadFixture('gutenberg', 'kalendar-shortcode.gutenberg.html');
+    const tree = gutenbergAdapter(raw, { keepShortcodes: ['kalendar'] });
+    expect(JSON.stringify(tree)).toContain('[kalendar]');
   });
 
   it('never throws; falls back to HTML for a non-empty unmapped body', () => {

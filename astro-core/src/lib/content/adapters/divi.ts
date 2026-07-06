@@ -31,7 +31,7 @@ import type {
   TabsNode,
 } from '../ir';
 import { htmlNode } from '../ir';
-import { rewriteUrl, splitHtmlToNodes } from './html-utils';
+import { fallbackNodes, rewriteUrl, scrubShortcodes, splitHtmlToNodes } from './html-utils';
 import {
   tokenizeShortcodes,
   isShortcode,
@@ -77,18 +77,6 @@ function isOn(v: string | undefined): boolean {
   return v === 'on' || v === 'yes' || v === '1' || v === 'true';
 }
 
-/** Warn once per distinct non-DIVI shortcode name found in a chunk of HTML. */
-function warnNestedShortcodes(html: string, warn: (m: string) => void): void {
-  if (!html || html.indexOf('[') === -1) return;
-  const re = /\[([a-zA-Z][\w-]*)[\s\]/]/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) {
-    const name = m[1]!.toLowerCase();
-    if (name.startsWith('et_pb_') || name === 'caption') continue;
-    warn(`unmapped shortcode [${name}] left verbatim in content`);
-  }
-}
-
 /** Content-bearing HTML for a module: prefer a `content`/`body` attr, else raw inner. */
 function moduleHtml(node: ShortcodeNode): string {
   return node.attrs.content ?? node.attrs.body ?? node.rawInner ?? '';
@@ -101,6 +89,13 @@ function moduleHtml(node: ShortcodeNode): string {
 interface Ctx {
   baseUrl?: string;
   warn: (m: string) => void;
+  /** Non-DIVI shortcode names to preserve verbatim (passed to the scrubber). */
+  keep?: string[];
+}
+
+/** Scrub options for the shared html splitter / scrubber. */
+function scrubOpts(ctx: Ctx): { warn: (m: string) => void; keep?: string[] } {
+  return ctx.keep ? { warn: ctx.warn, keep: ctx.keep } : { warn: ctx.warn };
 }
 
 function shortcodeChildren(node: ShortcodeNode): ShortcodeNode[] {
@@ -134,8 +129,7 @@ function mapChildren(children: TokenNode[], ctx: Ctx): ContentNode[] {
     if (!isShortcode(child)) {
       // stray HTML/text between modules: split it structurally
       if (child.value.trim()) {
-        warnNestedShortcodes(child.value, ctx.warn);
-        out.push(...splitHtmlToNodes(child.value, ctx.baseUrl));
+        out.push(...splitHtmlToNodes(child.value, ctx.baseUrl, scrubOpts(ctx)));
       }
       continue;
     }
@@ -201,8 +195,7 @@ function mapButton(node: ShortcodeNode, ctx: Ctx): ButtonNode {
 }
 
 function mapBlurb(node: ShortcodeNode, ctx: Ctx): BlurbNode {
-  const html = moduleHtml(node);
-  warnNestedShortcodes(html, ctx.warn);
+  const html = scrubShortcodes(moduleHtml(node), scrubOpts(ctx));
   const blurb: BlurbNode = { type: 'blurb', html };
   const title = attr(node, 'title');
   if (title) blurb.title = title;
@@ -226,10 +219,9 @@ function mapTabs(node: ShortcodeNode, ctx: Ctx): TabsNode {
   for (const child of shortcodeChildren(node)) {
     if (child.name !== 'et_pb_tab') continue;
     const html = moduleHtml(child);
-    warnNestedShortcodes(html, ctx.warn);
     tabs.push({
       title: attr(child, 'title') ?? '',
-      children: splitHtmlToNodes(html, ctx.baseUrl),
+      children: splitHtmlToNodes(html, ctx.baseUrl, scrubOpts(ctx)),
     });
   }
   return { type: 'tabs', tabs };
@@ -240,8 +232,7 @@ function mapAccordion(node: ShortcodeNode, ctx: Ctx): TabsNode {
   const toggles = node.name === 'et_pb_toggle' ? [node] : shortcodeChildren(node).filter((c) => c.name === 'et_pb_toggle');
   const tabs = toggles.map((t) => {
     const html = moduleHtml(t);
-    warnNestedShortcodes(html, ctx.warn);
-    return { title: attr(t, 'title') ?? '', children: splitHtmlToNodes(html, ctx.baseUrl) };
+    return { title: attr(t, 'title') ?? '', children: splitHtmlToNodes(html, ctx.baseUrl, scrubOpts(ctx)) };
   });
   return { type: 'tabs', tabs };
 }
@@ -270,8 +261,7 @@ function mapCta(node: ShortcodeNode, ctx: Ctx): SectionNode {
   if (title) children.push({ type: 'heading', level: 2, html: title });
   const body = moduleHtml(node);
   if (body.trim()) {
-    warnNestedShortcodes(body, ctx.warn);
-    children.push(...splitHtmlToNodes(body, ctx.baseUrl));
+    children.push(...splitHtmlToNodes(body, ctx.baseUrl, scrubOpts(ctx)));
   }
   const buttonText = attr(node, 'button_text');
   if (buttonText) {
@@ -308,8 +298,7 @@ function mapModule(node: ShortcodeNode, ctx: Ctx): ContentNode | ContentNode[] |
       return mapColumn(node, ctx);
     case 'et_pb_text': {
       const html = moduleHtml(node);
-      warnNestedShortcodes(html, ctx.warn);
-      return splitHtmlToNodes(html, ctx.baseUrl);
+      return splitHtmlToNodes(html, ctx.baseUrl, scrubOpts(ctx));
     }
     case 'et_pb_image':
     case 'et_pb_fullwidth_image':
@@ -347,9 +336,12 @@ function mapModule(node: ShortcodeNode, ctx: Ctx): ContentNode | ContentNode[] |
         return html.trim() ? htmlNode(html) : null;
       }
       // A non-DIVI shortcode at module position ([kalendar], [pdfjs-viewer]…):
-      // pass through verbatim for the site layer, warn once.
-      ctx.warn(`unmapped shortcode [${name}] left verbatim in content`);
-      return node.raw.trim() ? htmlNode(node.raw) : null;
+      // scrub it (self-closing/inline dropped, enclosing unwrapped) unless the
+      // site keeps it. Whatever inner content survives is split structurally.
+      const scrubbed = scrubShortcodes(node.raw, scrubOpts(ctx)).trim();
+      if (!scrubbed) return null;
+      if (scrubbed === node.raw.trim()) return htmlNode(node.raw); // kept verbatim
+      return splitHtmlToNodes(scrubbed, ctx.baseUrl, scrubOpts(ctx));
     }
   }
 }
@@ -362,18 +354,17 @@ export const diviAdapter: ContentAdapter = (raw, adapterCtx) => {
   const warn = makeWarner(adapterCtx);
   const ctx: Ctx = { warn };
   if (adapterCtx?.baseUrl) ctx.baseUrl = adapterCtx.baseUrl;
+  if (adapterCtx?.keepShortcodes) ctx.keep = adapterCtx.keepShortcodes;
 
   try {
     const tokens = tokenizeShortcodes(raw ?? '');
     const nodes = groupLooseColumns(mapChildren(tokens, ctx));
     if (nodes.length === 0) {
-      const fallback = adapterCtx?.fallbackHtml ?? raw ?? '';
-      return fallback.trim() ? [htmlNode(fallback)] : [];
+      return fallbackNodes(adapterCtx?.fallbackHtml ?? raw ?? '', scrubOpts(ctx));
     }
     return nodes;
   } catch (err) {
     warn(`DIVI adapter failed, using HTML fallback: ${(err as Error).message}`);
-    const fallback = adapterCtx?.fallbackHtml ?? raw ?? '';
-    return [htmlNode(fallback)];
+    return fallbackNodes(adapterCtx?.fallbackHtml ?? raw ?? '', scrubOpts(ctx));
   }
 };

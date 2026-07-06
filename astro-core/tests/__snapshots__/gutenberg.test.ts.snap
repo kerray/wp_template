@@ -97,10 +97,6 @@ exports[`gutenbergAdapter — fixtures (snapshots) > maps comprehensive to a sta
 ",
     "type": "html",
   },
-  {
-    "html": "[kalendar year="2025"]",
-    "type": "html",
-  },
 ]
 `;
 
@@ -133,20 +129,6 @@ exports[`gutenbergAdapter — fixtures (snapshots) > maps detail-akce to a stabl
 ]
 `;
 
-exports[`gutenbergAdapter — fixtures (snapshots) > maps kalendar-shortcode to a stable IR tree 1`] = `
-[
-  {
-    "html": "[kalendar]",
-    "type": "html",
-  },
-]
-`;
+exports[`gutenbergAdapter — fixtures (snapshots) > maps kalendar-shortcode to a stable IR tree 1`] = `[]`;
 
-exports[`gutenbergAdapter — fixtures (snapshots) > maps unknown-dynamic to a stable IR tree 1`] = `
-[
-  {
-    "html": "<!-- wp:complianztc/terms-conditions {"title":"Obchodní podmínky","selectedDocument":"terms-conditions"} /-->",
-    "type": "html",
-  },
-]
-`;
+exports[`gutenbergAdapter — fixtures (snapshots) > maps unknown-dynamic to a stable IR tree 1`] = `[]`;

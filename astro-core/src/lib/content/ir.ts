@@ -165,6 +165,15 @@ export interface AdapterContext {
   baseUrl?: string;
   /** server-rendered HTML for the whole post; last-resort fallback material */
   fallbackHtml?: string;
+  /**
+   * Non-DIVI shortcodes to leave verbatim in text HTML instead of scrubbing.
+   * By default every unknown shortcode is removed (self-closing/orphan tokens
+   * are dropped, enclosing `[x]…[/x]` pairs are unwrapped keeping inner content)
+   * so server-side shortcodes like `[wpseo_breadcrumb]` never leak as literal
+   * text into the static build. Names here (case-insensitive) are preserved for
+   * a site layer that renders them itself.
+   */
+  keepShortcodes?: string[];
 }
 
 /** An adapter turns raw post_content into an IR tree. Must never throw. */

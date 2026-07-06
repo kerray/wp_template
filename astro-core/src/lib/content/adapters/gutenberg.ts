@@ -29,7 +29,7 @@ import type {
   SectionNode,
 } from '../ir';
 import { htmlNode } from '../ir';
-import { rewriteHtmlUrls, rewriteUrl, splitHtmlToNodes } from './html-utils';
+import { fallbackNodes, rewriteHtmlUrls, rewriteUrl, scrubShortcodes, splitHtmlToNodes } from './html-utils';
 
 interface WPBlock {
   blockName: string | null;
@@ -42,6 +42,13 @@ interface WPBlock {
 interface Ctx {
   baseUrl?: string;
   warn: (m: string) => void;
+  /** Non-DIVI shortcode names to preserve verbatim (passed to the scrubber). */
+  keep?: string[];
+}
+
+/** Scrub options for the shared html splitter / scrubber. */
+function scrubOpts(ctx: Ctx): { warn: (m: string) => void; keep?: string[] } {
+  return ctx.keep ? { warn: ctx.warn, keep: ctx.keep } : { warn: ctx.warn };
 }
 
 function makeWarner(ctx?: AdapterContext) {
@@ -101,7 +108,7 @@ function mapList(block: WPBlock, ctx: Ctx): ListNode | ContentNode[] {
     .filter((t) => t !== '');
   if (items.length) return { type: 'list', ordered, items };
   // legacy path: let the splitter build the list from raw HTML
-  return splitHtmlToNodes(block.innerHTML, ctx.baseUrl);
+  return splitHtmlToNodes(block.innerHTML, ctx.baseUrl, scrubOpts(ctx));
 }
 
 function mapButton(block: WPBlock, ctx: Ctx): ButtonNode | null {
@@ -167,22 +174,22 @@ function mapBlock(block: WPBlock, ctx: Ctx): ContentNode | ContentNode[] | null 
 
   // freeform / classic content
   if (name === null || name === 'core/freeform') {
-    return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl) : null;
+    return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl, scrubOpts(ctx)) : null;
   }
 
   switch (name) {
     case 'core/heading':
       return mapHeading(block, ctx);
     case 'core/paragraph':
-      return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl) : null;
+      return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl, scrubOpts(ctx)) : null;
     case 'core/list':
       return mapList(block, ctx);
     case 'core/list-item':
       // reached standalone (shouldn't normally): treat as paragraph-ish HTML
-      return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl) : null;
+      return block.innerHTML.trim() ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl, scrubOpts(ctx)) : null;
     case 'core/image':
       return block.innerHTML.trim()
-        ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl)
+        ? splitHtmlToNodes(block.innerHTML, ctx.baseUrl, scrubOpts(ctx))
         : null;
     case 'core/columns':
       return { type: 'columns', children: mapBlocks(block.innerBlocks, ctx).filter((n): n is ColumnNode => n.type === 'column') };
@@ -226,9 +233,15 @@ function mapBlock(block: WPBlock, ctx: Ctx): ContentNode | ContentNode[] | null 
     case 'core/verse':
     case 'core/code':
       return block.innerHTML.trim() ? htmlNode(rewriteHtmlUrls(block.innerHTML, ctx.baseUrl)) : null;
-    case 'core/shortcode':
-      ctx.warn(`core/shortcode passed through verbatim: ${block.innerHTML.trim().slice(0, 60)}`);
-      return block.innerHTML.trim() ? htmlNode(block.innerHTML.trim()) : null;
+    case 'core/shortcode': {
+      const scrubbed = scrubShortcodes(block.innerHTML, scrubOpts(ctx)).trim();
+      if (!scrubbed) return null;
+      if (scrubbed === block.innerHTML.trim()) {
+        ctx.warn(`core/shortcode kept verbatim: ${scrubbed.slice(0, 60)}`);
+        return htmlNode(scrubbed);
+      }
+      return splitHtmlToNodes(scrubbed, ctx.baseUrl, scrubOpts(ctx));
+    }
     case 'core/block':
       ctx.warn('reusable block ref not resolved (core/block) — skipped');
       return null;
@@ -247,18 +260,17 @@ export const gutenbergAdapter: ContentAdapter = (raw, adapterCtx) => {
   const warn = makeWarner(adapterCtx);
   const ctx: Ctx = { warn };
   if (adapterCtx?.baseUrl) ctx.baseUrl = adapterCtx.baseUrl;
+  if (adapterCtx?.keepShortcodes) ctx.keep = adapterCtx.keepShortcodes;
 
   try {
     const blocks = parse(raw ?? '') as unknown as WPBlock[];
     const nodes = mapBlocks(blocks, ctx);
     if (nodes.length === 0) {
-      const fallback = adapterCtx?.fallbackHtml ?? raw ?? '';
-      return fallback.trim() ? [htmlNode(fallback)] : [];
+      return fallbackNodes(adapterCtx?.fallbackHtml ?? raw ?? '', scrubOpts(ctx));
     }
     return nodes;
   } catch (err) {
     warn(`Gutenberg adapter failed, using HTML fallback: ${(err as Error).message}`);
-    const fallback = adapterCtx?.fallbackHtml ?? raw ?? '';
-    return [htmlNode(fallback)];
+    return fallbackNodes(adapterCtx?.fallbackHtml ?? raw ?? '', scrubOpts(ctx));
   }
 };

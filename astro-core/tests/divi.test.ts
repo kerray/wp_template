@@ -61,6 +61,31 @@ describe('diviAdapter — structural assertions', () => {
   });
 });
 
+describe('diviAdapter — texturized event body (Bug 2 safety net)', () => {
+  // Real archiv-akci event content as returned by apply_filters('the_content'):
+  // DIVI shortcodes are NOT rendered in REST context and wptexturize has turned
+  // every straight attribute quote into curly-quote entities (&#8220; / &#8243;).
+  const raw = loadFixture('divi', 'event-texturized.divi.txt');
+
+  it('leaves no [et_pb_ tokens or entity-quoted DIVI attrs in the IR', () => {
+    const { warn } = collectWarnings();
+    const json = JSON.stringify(diviAdapter(raw, { baseUrl: BASE, warn }));
+    expect(json).not.toContain('[et_pb_');
+    expect(json).not.toContain('et_pb_section');
+    expect(json).not.toContain('fb_built');
+    expect(json).not.toContain('&#8220;');
+    expect(json).not.toContain('&#8243;');
+  });
+
+  it('strips the nested [wpseo_breadcrumb] and keeps the human text', () => {
+    const tree = diviAdapter(raw, { baseUrl: BASE });
+    const json = JSON.stringify(tree);
+    expect(json).not.toContain('wpseo_breadcrumb');
+    // the event body carries real prose that must survive
+    expect(tree.length).toBeGreaterThan(0);
+  });
+});
+
 describe('diviAdapter — synthetic units', () => {
   it('column width math', () => {
     expect(widthFromType('1_3')).toBe('33.33%');
@@ -77,18 +102,20 @@ describe('diviAdapter — synthetic units', () => {
     expect(widthFromType(undefined)).toBeUndefined();
   });
 
-  it('warns once per distinct unknown module and passes through nested shortcodes', () => {
+  it('warns once per distinct unknown module and scrubs nested shortcodes', () => {
     const { warn, warnings } = collectWarnings();
     const src =
       '[et_pb_section][et_pb_row][et_pb_column type="4_4"]' +
       '[et_pb_widget]w1[/et_pb_widget][et_pb_widget]w2[/et_pb_widget]' +
       '[et_pb_text]<p>[kalendar year="2025"]</p>[/et_pb_text]' +
       '[/et_pb_column][/et_pb_row][/et_pb_section]';
-    diviAdapter(src, { warn });
+    const tree = diviAdapter(src, { warn });
     const unmappedModule = warnings.filter((w) => w.includes('et_pb_widget'));
     const kalendar = warnings.filter((w) => w.includes('[kalendar]'));
     expect(unmappedModule).toHaveLength(1); // deduped despite two occurrences
     expect(kalendar).toHaveLength(1);
+    // the nested [kalendar] must not survive into the IR
+    expect(JSON.stringify(tree)).not.toContain('kalendar');
   });
 
   it('maps et_pb_button attributes to a ButtonNode', () => {

@@ -28,12 +28,7 @@ exports[`diviAdapter — real fixtures (snapshots) > maps charakteristika-studia
       {
         "children": [
           {
-            "children": [
-              {
-                "html": "[wpseo_breadcrumb]",
-                "type": "paragraph",
-              },
-            ],
+            "children": [],
             "type": "column",
             "width": "100%",
           },
@@ -163,12 +158,7 @@ exports[`diviAdapter — real fixtures (snapshots) > maps historie-skoly to a st
       {
         "children": [
           {
-            "children": [
-              {
-                "html": "[wpseo_breadcrumb]",
-                "type": "paragraph",
-              },
-            ],
+            "children": [],
             "type": "column",
             "width": "100%",
           },
@@ -542,12 +532,7 @@ exports[`diviAdapter — real fixtures (snapshots) > maps studium-lyceum to a st
       {
         "children": [
           {
-            "children": [
-              {
-                "html": "[wpseo_breadcrumb]",
-                "type": "paragraph",
-              },
-            ],
+            "children": [],
             "type": "column",
             "width": "100%",
           },
@@ -833,48 +818,23 @@ exports[`diviAdapter — real fixtures (snapshots) > maps uvod to a stable IR tr
               {
                 "tabs": [
                   {
-                    "children": [
-                      {
-                        "html": "[akce <span>category</span>="" pocet="5" wrapper="ol" image_size="thumbnail" ]",
-                        "type": "paragraph",
-                      },
-                    ],
+                    "children": [],
                     "title": "Všechny akce",
                   },
                   {
-                    "children": [
-                      {
-                        "html": "[akce cat="4" pocet="3"]",
-                        "type": "paragraph",
-                      },
-                    ],
+                    "children": [],
                     "title": "AKCE ŠKOLKY",
                   },
                   {
-                    "children": [
-                      {
-                        "html": "[akce cat="3" pocet="3"]",
-                        "type": "paragraph",
-                      },
-                    ],
+                    "children": [],
                     "title": "AKCE ŠKOLY",
                   },
                   {
-                    "children": [
-                      {
-                        "html": "[akce <span>category</span>="<span>akce-lycea</span>" pocet="5"]",
-                        "type": "paragraph",
-                      },
-                    ],
+                    "children": [],
                     "title": "AKCE LYCEA",
                   },
                   {
-                    "children": [
-                      {
-                        "html": "[akce cat="5" pocet="3" ]",
-                        "type": "paragraph",
-                      },
-                    ],
+                    "children": [],
                     "title": "AKCE MRAVENIŠTĚ",
                   },
                 ],

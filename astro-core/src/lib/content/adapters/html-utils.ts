@@ -82,6 +82,83 @@ export function rewriteHtmlUrls(html: string, baseUrl?: string): string {
 }
 
 /* ------------------------------------------------------------------ */
+/* Shortcode scrubbing                                                  */
+/* ------------------------------------------------------------------ */
+
+export interface ScrubOptions {
+  /** warn-once sink (dedup handled upstream by the adapter's makeWarner). */
+  warn?: (message: string) => void;
+  /** Non-DIVI shortcode names to leave verbatim (case-insensitive). */
+  keep?: string[];
+}
+
+/**
+ * Remove shortcodes that would otherwise leak into the static build as literal
+ * text. Two classes are handled:
+ *
+ *  1. Residual DIVI tokens (`[et_pb_*…]` / `[/et_pb_*]`) — a safety net for
+ *     content that reached the text layer without being tokenized (e.g. a
+ *     texturized event body). Attribute quoting is irrelevant: `[^\]]*` matches
+ *     straight quotes, HTML-entity curly quotes (`&#8220;`/`&#8243;`) and raw
+ *     curly quotes (`„ “ ” ″`) alike, so both forms are stripped.
+ *
+ *  2. Unknown non-DIVI shortcodes. Server-side self-closing/inline ones
+ *     (`[wpseo_breadcrumb]`, `[yoast-breadcrumb]`, `[pdfjs-viewer …]`) render to
+ *     nothing meaningful headlessly and are dropped. Enclosing pairs
+ *     (`[x]…[/x]`, e.g. `[caption]`) have their wrapper tags removed but their
+ *     inner content KEPT. Names in `keep` are left verbatim for a site layer
+ *     that renders them itself.
+ */
+export function scrubShortcodes(html: string, opts?: ScrubOptions): string {
+  if (!html || html.indexOf('[') === -1) return html;
+  const warn = opts?.warn;
+  const keep = new Set((opts?.keep ?? []).map((s) => s.toLowerCase()));
+  let out = html;
+
+  // 1) Residual DIVI tokens (open + close), quote-agnostic.
+  out = out.replace(/\[\/?(et_pb_[\w]*)\b[^\]]*\]/gi, (_m, name: string) => {
+    warn?.(`residual DIVI shortcode [${name.toLowerCase()}] stripped from content`);
+    return '';
+  });
+
+  // 2) Enclosing unknown shortcodes `[name …]…[/name]` → unwrap (keep inner).
+  out = out.replace(
+    /\[([a-zA-Z][\w-]*)\b[^\]]*\]([\s\S]*?)\[\/\1\]/gi,
+    (full: string, name: string, inner: string) => {
+      const n = name.toLowerCase();
+      if (n.startsWith('et_pb_') || keep.has(n)) return full;
+      warn?.(`unknown shortcode [${n}] unwrapped (kept inner content)`);
+      return inner;
+    },
+  );
+
+  // 3) Remaining self-closing / orphan tokens `[name …]` or `[/name]` → strip.
+  out = out.replace(/\[\/?([a-zA-Z][\w-]*)\b[^\]]*\]/g, (full: string, name: string) => {
+    const n = name.toLowerCase();
+    if (n.startsWith('et_pb_') || keep.has(n)) return full;
+    warn?.(`unknown shortcode [${n}] stripped from content`);
+    return '';
+  });
+
+  return out;
+}
+
+/**
+ * Build the last-resort fallback body for an adapter that mapped nothing (empty
+ * result or a thrown parse). The candidate HTML (server-rendered content, or the
+ * raw source as a final resort) is scrubbed of leftover shortcodes and stripped
+ * of HTML comments (WP block delimiters etc.), so a page whose entire body was a
+ * now-removed shortcode (`[kalendar]`) yields NO node instead of resurrecting the
+ * literal shortcode as visible text.
+ */
+export function fallbackNodes(html: string, opts?: ScrubOptions): ContentNode[] {
+  const scrubbed = scrubShortcodes(html ?? '', opts)
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .trim();
+  return scrubbed ? [htmlNode(scrubbed)] : [];
+}
+
+/* ------------------------------------------------------------------ */
 /* HTML → IR node splitting                                            */
 /* ------------------------------------------------------------------ */
 
@@ -166,8 +243,12 @@ function figureToNode(fig: UNode, baseUrl?: string): ContentNode {
  * don't structurally understand (tables, divs, iframes, pre, blockquote) is
  * kept verbatim as an HtmlNode so nothing is ever dropped.
  */
-export function splitHtmlToNodes(html: string, baseUrl?: string): ContentNode[] {
-  const src = (html ?? '').trim();
+export function splitHtmlToNodes(
+  html: string,
+  baseUrl?: string,
+  opts?: ScrubOptions,
+): ContentNode[] {
+  const src = scrubShortcodes((html ?? '').trim(), opts).trim();
   if (!src) return [];
 
   let doc: UNode;

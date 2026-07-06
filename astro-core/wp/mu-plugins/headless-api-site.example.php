@@ -158,7 +158,16 @@ function waldorf_astro_get_akce() {
             'categoryNames'  => $cat_names,
             'categoryColors' => $cat_colors,
             'excerpt'        => $excerpt,
-            'content'        => apply_filters('the_content', $event->post_content),
+            // Flatten DIVI + strip server-side shortcodes from the RAW body. We
+            // deliberately do NOT use apply_filters('the_content'): in the REST
+            // context DIVI's [et_pb_*] shortcodes are not rendered, and the_content
+            // runs wptexturize which turns them into curly-quoted literal soup that
+            // would ship to the calendar/event pages verbatim. clean-content
+            // flattens the layout and removes the shortcodes (and tolerates the
+            // texturized form too, as a safety net).
+            'content'        => function_exists('headless_api_clean_content')
+                ? headless_api_clean_content($event->post_content, $event)
+                : apply_filters('the_content', $event->post_content),
             'image'          => $thumb_url,
             'modified'       => get_post_modified_time('c', true, $event->ID),
         );

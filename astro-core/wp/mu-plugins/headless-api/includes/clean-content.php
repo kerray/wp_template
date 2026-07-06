@@ -60,6 +60,24 @@ function headless_api_clean_content($content, $post = null) {
     $html = (string) $content;
 
     if (strpos($html, '[et_pb_') !== false) {
+        // Normalize texturized / curly quotes to straight quotes INSIDE shortcode
+        // spans only. Raw post_content stores straight quotes, but a body that
+        // reached here via apply_filters('the_content') has been through
+        // wptexturize, which rewrites every attribute quote as a curly-quote
+        // entity (&#8220; / &#8221; / &#8243;) or raw curly char (" " ″). The
+        // attribute-matching regexes below expect straight quotes, so we fix the
+        // quoting inside `[...]` (never in body prose) before extracting.
+        $html = preg_replace_callback('/\[[^\]]*\]/', function ($m) {
+            // Double-quote variants only — DIVI attributes are double-quoted, so
+            // leaving single-quote/apostrophe entities untouched avoids corrupting
+            // curly apostrophes that live inside an attribute value.
+            return str_replace(
+                array('&#8220;', '&#8221;', '&#8243;', '„', '“', '”', '″'),
+                '"',
+                $m[0]
+            );
+        }, $html);
+
         // [et_pb_image src="…"] -> <img>
         $html = preg_replace_callback('/\[et_pb_image\b([^\]]*)\]/', function ($m) {
             if (preg_match('/\bsrc="([^"]+)"/', $m[1], $s)) {
