@@ -123,3 +123,22 @@ just astro-deploy       # build + lftp mirror to the FTP target
   encoded attrs) warrant snapshot tests against real content.
 - Fonts are **site-specific**: install `@fontsource/*` in `astro/` and import in
   `src/layouts/Layout.astro`; core ships no fonts.
+
+## Implementation status (2026-07-06)
+
+Phase 0 + Phase 1 of the plan are **done and verified**:
+
+- `astro-core` + `astro-template` + `astro-*` recipes + node compose profile +
+  sync integration landed in commit `334472b`; shortcode-leak fixes (unknown
+  shortcode scrubbing, texturize-tolerant DIVI flatten) in `9594cda`.
+- Adapter test suite: **63 tests green** (real DIVI fixtures from waldorf,
+  Gutenberg fixtures, texturized-event regression). `tsc`, `astro check` and a
+  WP-unreachable `astro build` of the scaffold all pass.
+- **DIVI reference site**: waldorf `AstroJS` branch (`../site_waldorf_astro`,
+  commits `a59f8846`, `2fca79ce`) builds 284 static pages against local WP;
+  zero raw `[et_pb_` / `[wpseo_breadcrumb]` anywhere in dist.
+
+Not yet done (next phases): Gutenberg pilot on **site_goodkarma**
+(`just astro-init`), media mirroring into `public/wp-content/uploads/`,
+`/menus` endpoint, webhook/CI rebuild-on-save, `astro-doctor` drift check,
+production deploy of the waldorf frontend (subdomain-vs-htaccess decision).
