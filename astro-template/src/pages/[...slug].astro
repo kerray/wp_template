@@ -1,0 +1,93 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import ContentRenderer from '@site/astro-core/components/content/ContentRenderer.astro';
+import { resolveConfig } from '@site/astro-core/config';
+import config from '../../site.config';
+
+export const getStaticPaths = (async () => {
+  const site = resolveConfig(config);
+  // Reserved paths owned by dedicated routes (home, CPT collections, custom
+  // pages) — the catch-all must not shadow them. Sourced from site.config.
+  const RESERVED = new Set<string>(site.routes?.reserved ?? ['']);
+
+  // Two content sources, in priority order:
+  //  1. Curated Markdown (`src/content/pages/*.md`) — high fidelity, hand-checked.
+  //  2. The headless WordPress feed (`wpPages`) — adapter-parsed IR body, with
+  //     cleanContent HTML / placeholder fallbacks.
+  // A curated entry always wins for its slug.
+  const curated = (await getCollection('pages')).filter((e) => !e.data.draft);
+  const curatedBySlug = new Map(curated.map((e) => [e.data.wpSlug ?? e.id, e]));
+
+  const paths: Array<{
+    params: { slug: string };
+    props:
+      | { kind: 'curated'; entry: CollectionEntry<'pages'> }
+      | { kind: 'wp'; entry: CollectionEntry<'wpPages'> };
+  }> = [];
+
+  for (const [slug, entry] of curatedBySlug) {
+    if (RESERVED.has(slug)) continue;
+    paths.push({ params: { slug }, props: { kind: 'curated', entry } });
+  }
+
+  // Some WP pages can share a post_name, which would emit duplicate static
+  // paths. De-dupe deterministically: first occurrence wins. Curated slugs are
+  // already claimed above.
+  const seen = new Set<string>(curatedBySlug.keys());
+  for (const entry of await getCollection('wpPages')) {
+    const slug = entry.data.slug ?? entry.id;
+    if (RESERVED.has(slug) || seen.has(slug)) continue;
+    seen.add(slug);
+    paths.push({ params: { slug }, props: { kind: 'wp', entry } });
+  }
+
+  return paths;
+}) satisfies GetStaticPaths;
+
+type Props =
+  | { kind: 'curated'; entry: CollectionEntry<'pages'> }
+  | { kind: 'wp'; entry: CollectionEntry<'wpPages'> };
+const props = Astro.props as Props;
+
+let title: string;
+let nodes: CollectionEntry<'wpPages'>['data']['body'] | null = null;
+let bodyHtml: string | null = null;
+let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
+
+if (props.kind === 'curated') {
+  title = props.entry.data.title;
+  Content = (await render(props.entry)).Content;
+} else {
+  const { data } = props.entry;
+  title = data.title.replace(/<[^>]+>/g, '');
+  if (Array.isArray(data.body) && data.body.length > 0) {
+    // Adapter produced a structured IR tree — render via the design system.
+    nodes = data.body;
+  } else {
+    // Fall back to the feed's cleaned HTML; a placeholder if nothing usable.
+    const candidate = data.cleanContent?.trim() ? data.cleanContent : data.content;
+    bodyHtml = candidate?.trim().length ? candidate : null;
+  }
+}
+---
+
+<Layout title={title}>
+  <article class="container max-w-[850px] mx-auto">
+    <h1 class="heading text-3xl mb-5">{title}</h1>
+    {Content ? (
+      <div class="prose max-w-none"><Content /></div>
+    ) : nodes ? (
+      <ContentRenderer nodes={nodes} />
+    ) : bodyHtml ? (
+      <div class="prose max-w-none" set:html={bodyHtml} />
+    ) : (
+      <div class="card border-l-4 border-highlight">
+        <p class="m-0">
+          The content of this page is being prepared.
+        </p>
+      </div>
+    )}
+  </article>
+</Layout>

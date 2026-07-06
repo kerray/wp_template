@@ -1,0 +1,27 @@
+---
+// Minimal homepage. Replace with your real landing page — pull events/news/etc.
+// from @site/astro-core's data layer and compose core or local components.
+import Layout from '../layouts/Layout.astro';
+import config from '../../site.config';
+
+const nav = config.nav.primary;
+---
+
+<Layout title="Home">
+  <section class="container py-10">
+    <h1 class="heading text-4xl mb-4">{config.contact?.name ?? 'New site'}</h1>
+    <p class="mb-8 text-lg">
+      This is the placeholder homepage from the Astro scaffold. Edit
+      <code>src/pages/index.astro</code> and <code>site.config.ts</code> to make it yours.
+    </p>
+    {nav.length > 0 && (
+      <nav>
+        <ul class="flex flex-wrap gap-4">
+          {nav.map((item) => (
+            <li><a class="text-accent hover:underline" href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </section>
+</Layout>

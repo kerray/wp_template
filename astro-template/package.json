@@ -1,0 +1,27 @@
+{
+  "name": "site-astro",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Per-site Astro 7 + UnoCSS static frontend scaffolded by `just astro-init`. Consumes the shared @site/astro-core layer over a file: link. Customize site.config.ts and the pages; the design system lives in astro-core.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "sync": "astro sync",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "astro": "^7.0.6",
+    "@site/astro-core": "file:../astro-core"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@iconify-json/tabler": "^1.2.17",
+    "@types/node": "^26.1.0",
+    "@unocss/astro": "^66.7.4",
+    "@unocss/reset": "^66.7.4",
+    "typescript": "^6.0.3",
+    "unocss": "^66.7.4"
+  }
+}

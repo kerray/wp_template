@@ -1,0 +1,961 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`diviAdapter — real fixtures (snapshots) > maps charakteristika-studia to a stable IR tree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "CHARAKTERISTIKA STUDIA",
+                "level": 1,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "[wpseo_breadcrumb]",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "tabs": [],
+                "type": "tabs",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "",
+                "src": "/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png",
+                "type": "image",
+              },
+              {
+                "html": "<a href="/kalendar/">Kalendář akcí</a><br><a href="/zakladni-skola/aktualni-informace">Aktuality</a><br><a href="/kontakt/">Kontakty</a><br><a href="/o-skole/uredni-deska/">Úřední deska</a>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "<a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "MRAWENIŠTĚ",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "Spolek školy<br><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br>Plénum školy<br><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br><a href="/mraweniste/projekty/">Projekty</a><br><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br>Partneři školy<br>Odkazy",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+]
+`;
+
+exports[`diviAdapter — real fixtures (snapshots) > maps historie-skoly to a stable IR tree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "HISTORIE ŠKOLY",
+                "level": 1,
+                "type": "heading",
+              },
+              {
+                "html": "<strong>Jak to všechno v Brně začalo</strong>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "[wpseo_breadcrumb]",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "HISTORIE MŠ",
+                "level": 1,
+                "type": "heading",
+              },
+              {
+                "html": "aneb z Božetěchové na Plovdivskou",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "Cesta ke kořenům aneb jak to tenkrát v Brně všechno začalo",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "Waldorfské školství v Brně má své kořeny v roce 1991 a je spojeno s tehdejší mateřskou školou na Božetěchově 32, v Brně – Králově Poli. Tamnější paní učitelky nejprve pozvolna vnášely prvky waldorfské pedagogiky do své každodenní práce a postupně pracovaly na přeměně dosud běžné školky ve školku waldorfskou. V roce 1993 vznikl spolek rodičů na podporu myšlenek Rudolfa Steinera - W Alternativa, který se chtěl starat a pečovat o školku po linii rodičovské.",
+                "type": "paragraph",
+              },
+              {
+                "html": "V plné síle k dalšímu cíli",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "Z přání umožnit svým dětem vzdělání ve stejném duchu, jaký vládne v mateřské škole, se v roce 1995 zrodila v řadách rodičů silná iniciativa směřující k založení waldorfské základní školy v Brně. To se po značném úsilí tehdejším rodičům podařilo v roce 1999, kdy se otevřela první waldorfská třída při klasické ZŠ v Brně v městské části Žabovřesky. Během následujících let se waldorfské třídy několikrát stěhovaly.",
+                "type": "paragraph",
+              },
+              {
+                "html": "Samostatnost – nový počátek",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "V roce 2009 statutární město Brno zřídilo samostatnou waldorfskou školu s vlastním vedením. Rozjel se samostatný waldorfský vlak a školka přijala pozvání a „přistoupila“ také. Narodilo se jedinečné státní školské zařízení – Waldorfská základní škola a mateřská škola Brno, Plovdivská 8, příspěvková organizace.",
+                "type": "paragraph",
+              },
+              {
+                "html": "Na prahu dalšího desetiletí",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "V září 2019 si brněnská waldorfská škola připomínala nejen 100. výročí založení vůbec první školy Rudolfa Steinera ve Stuttgartu, ale také svá vlastní jubilea – 20. výročí waldorfského základního školství v moravské metropoli a 10 let od založení samostatné waldorfské školy v Brně. Na prahu dalšího desetiletí tak stála škola se 3 třídami mateřské školy a 13 třídami školy základní. Kromě nově vznikajících paralelních tříd v nejnižších ročnících s námi dlouho funguje i třída speciální, pečující o děti s kombinovaným postižením.",
+                "type": "paragraph",
+              },
+              {
+                "html": "Zřízení střední školy",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "V září 2022 se podařilo přivítat prvních 30 žáků nově zřízené střední školy v oboru Kombinované lyceum. Od 3. ročníku se žáci profilují do jednoho ze tří nabízených zaměření - humanitního, přírodovědného nebo technického. Ve 4. ročníku je čeká ukončení studia formou maturitní zkoušky.",
+                "type": "paragraph",
+              },
+              {
+                "html": "Rok 2023 a vize nejbližších let",
+                "level": 2,
+                "type": "heading",
+              },
+              {
+                "html": "Nově přejmenovaná Waldorfská škola Brno - střední škola, základní škola a mateřská škola, příspěvková organizace pokračuje ve svém rozšiřování. Získala pro svou činnost celý další pavilon, kde se uhnízdily třídy lycea (těšící se ještě na další 2 nové ročníky) a hned ve vedlejším vchodu 9. třída ZŠ. Již příští školní rok se završí otevírání nových paralelních tříd a v každém ročníku ZŠ budou spolupracovat 2 třídy, doplněné o jednu společnou speciální třídu s žáky 1. i  2. stupně. Školka pokračuje se svými 3 třídami, nově se střídajícími i v přírodní učebně na zahradním pozemku v Komíně.",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [],
+            "type": "column",
+            "width": "25%",
+          },
+          {
+            "children": [],
+            "type": "column",
+            "width": "25%",
+          },
+          {
+            "children": [],
+            "type": "column",
+            "width": "25%",
+          },
+          {
+            "children": [],
+            "type": "column",
+            "width": "25%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "",
+                "src": "/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png",
+                "type": "image",
+              },
+              {
+                "html": "<a href="/kalendar/">Kalendář akcí</a><br><a href="/zakladni-skola/aktualni-informace">Aktuality</a><br><a href="/kontakt/">Kontakty</a><br><a href="/o-skole/uredni-deska/">Úřední deska</a>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "<a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "MRAWENIŠTĚ",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/mraweniste/plenum">Plénum školy</a><br><a href="/mraweniste/spolek/">Spolek školy</a><br><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br><a href="/mraweniste/projekty/">Projekty</a><br><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br>Odkazy",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+]
+`;
+
+exports[`diviAdapter — real fixtures (snapshots) > maps o-skole to a stable IR tree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "O ŠKOLE",
+                "level": 1,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "href": "/kontakty/",
+                "html": "<p>Informace o kontaktech školy<br />E-mailové kontakty zaměstnanců</p>",
+                "title": "KONTAKTY",
+                "type": "blurb",
+              },
+              {
+                "href": "/o-skole/uredni-hodiny/",
+                "html": "<p style="text-align: center;">Kdy a kde nás zastihnete?</p>",
+                "title": "ÚŘEDNÍ HODINY",
+                "type": "blurb",
+              },
+              {
+                "href": "/o-skole/volna-mista/",
+                "html": "<p style="text-align: center;">Výběrová řízení na pozice ve škole<br />Výběrová řízení na pozice ředitelů škol - informace SMB</p>",
+                "title": "VOLNÁ MÍSTA",
+                "type": "blurb",
+              },
+              {
+                "href": "/o-skole/historie-skoly/",
+                "html": "",
+                "title": "HISTORIE ŠKOLY",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "50%",
+          },
+          {
+            "children": [
+              {
+                "href": "/o-skole/uredni-deska/",
+                "html": "<p style="text-align: center;"><span class="ILfuVd" lang="cs"><span class="hgKElc">Elektronická úřední deska podle zákona 194/2017 Sb.</span></span><br />Povinně zveřejňované informace</p>",
+                "title": "ÚŘEDNÍ DESKA",
+                "type": "blurb",
+              },
+              {
+                "href": "/o-skole/elektronicka-podatelna",
+                "html": "<p>Adresa a podmínky pro elektronické podání</p>",
+                "title": "ELEKTRONICKÁ PODATELNA",
+                "type": "blurb",
+              },
+              {
+                "href": "/mraweniste/projekty/",
+                "html": "<p>Přehled projektů a dotací,<br />ze kterých škola získala finanční prostředky</p>",
+                "title": "PROJEKTY A DOTACE",
+                "type": "blurb",
+              },
+              {
+                "href": "/o-skole/ochrana-oznamovatelu/",
+                "html": "",
+                "title": "OCHRANA OZNAMOVATELŮ",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "50%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "",
+                "src": "/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png",
+                "type": "image",
+              },
+              {
+                "html": "<a href="/kalendar/">Kalendář akcí</a><br><a href="/zakladni-skola/aktualni-informace">Aktuality</a><br><a href="/kontakt/">Kontakty</a><br><a href="/o-skole/uredni-deska/">Úřední deska</a>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "<a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "MRAWENIŠTĚ",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/mraweniste/plenum">Plénum školy</a><br><a href="/mraweniste/spolek/">Spolek školy</a><br><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br><a href="/mraweniste/projekty/">Projekty</a><br><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br>Odkazy",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+]
+`;
+
+exports[`diviAdapter — real fixtures (snapshots) > maps studium-lyceum to a stable IR tree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "O STUDIU NA LYCEU",
+                "level": 1,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "[wpseo_breadcrumb]",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "href": "/stredni-skola/studium-lyceum/charakteristika-studia/",
+                "html": "",
+                "title": "CHARAKTERISTIKA STUDIA",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "href": "/stredni-skola/studium-lyceum/informace-o-studiu/",
+                "html": "",
+                "title": "INFORMACE O STUDIU",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "href": "/stredni-skola/studium-lyceum/profil-studenta/",
+                "html": "",
+                "title": "PROFIL ŽÁKA",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "",
+                "src": "/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png",
+                "type": "image",
+              },
+              {
+                "html": "<a href="/kalendar/">Kalendář akcí</a><br><a href="/zakladni-skola/aktualni-informace">Aktuality</a><br><a href="/kontakt/">Kontakty</a><br><a href="/o-skole/uredni-deska/">Úřední deska</a>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "<a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "MRAWENIŠTĚ",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/mraweniste/plenum">Plénum školy</a><br><a href="/mraweniste/spolek/">Spolek školy</a><br><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br><a href="/mraweniste/projekty/">Projekty</a><br><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br>Odkazy",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+]
+`;
+
+exports[`diviAdapter — real fixtures (snapshots) > maps uvod to a stable IR tree 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "WALDORFSKÁ  ŠKOLA BRNO",
+                "level": 1,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "href": "/materska-skola/",
+                "html": "",
+                "image": "/wp-content/uploads/2021/08/p1010409-e1630353985627.jpg",
+                "title": "Mateřská škola",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "href": "/zakladni-skola/",
+                "html": "",
+                "image": "/wp-content/uploads/2018/05/csc_0276.jpg",
+                "title": "Základní škola",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "href": "/stredni-skola/",
+                "html": "",
+                "image": "/wp-content/uploads/2021/08/img_sś-e1630352833133.jpg",
+                "title": "STŘEDNÍ škola",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "href": "/mraweniste",
+                "html": "",
+                "image": "/wp-content/uploads/2021/10/skola-zahajeni-siroka.jpg",
+                "title": "Mraweniště",
+                "type": "blurb",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "AKTUÁLNĚ OD NÁS",
+                "level": 2,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "přání",
+                "src": "/wp-content/uploads/2023/12/prani.jpg",
+                "type": "image",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "perPage": 3,
+                "postType": "post",
+                "type": "postlist",
+              },
+              {
+                "href": "/aktualni-informace/",
+                "text": "DALŠÍ AKTUALITY",
+                "type": "button",
+                "variant": "primary",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "html": "Přehled nejbližších akcí",
+                "level": 1,
+                "type": "heading",
+              },
+              {
+                "html": "<span style="color: #0a0a0a;"><strong>Pozvánky a informace o nejbližších slavnostech a dalších akcích školky, školy, lycea, Nadačního fondu a spolku školy</strong></span>",
+                "type": "paragraph",
+              },
+              {
+                "tabs": [
+                  {
+                    "children": [
+                      {
+                        "html": "[akce <span>category</span>="" pocet="5" wrapper="ol" image_size="thumbnail" ]",
+                        "type": "paragraph",
+                      },
+                    ],
+                    "title": "Všechny akce",
+                  },
+                  {
+                    "children": [
+                      {
+                        "html": "[akce cat="4" pocet="3"]",
+                        "type": "paragraph",
+                      },
+                    ],
+                    "title": "AKCE ŠKOLKY",
+                  },
+                  {
+                    "children": [
+                      {
+                        "html": "[akce cat="3" pocet="3"]",
+                        "type": "paragraph",
+                      },
+                    ],
+                    "title": "AKCE ŠKOLY",
+                  },
+                  {
+                    "children": [
+                      {
+                        "html": "[akce <span>category</span>="<span>akce-lycea</span>" pocet="5"]",
+                        "type": "paragraph",
+                      },
+                    ],
+                    "title": "AKCE LYCEA",
+                  },
+                  {
+                    "children": [
+                      {
+                        "html": "[akce cat="5" pocet="3" ]",
+                        "type": "paragraph",
+                      },
+                    ],
+                    "title": "AKCE MRAVENIŠTĚ",
+                  },
+                ],
+                "type": "tabs",
+              },
+              {
+                "href": "/kalendar/",
+                "text": "PŘEHLED VŠECH AKCÍ",
+                "type": "button",
+                "variant": "primary",
+              },
+            ],
+            "type": "column",
+            "width": "100%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "alt": "",
+                "src": "/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png",
+                "type": "image",
+              },
+              {
+                "html": "<a href="/kalendar/">Kalendář akcí</a><br><a href="/zakladni-skola/aktualni-informace">Aktuality</a><br><a href="/kontakt/">Kontakty</a><br><a href="/o-skole/uredni-deska/">Úřední deska</a>",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "<a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a>",
+                "level": 3,
+                "type": "heading",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+          {
+            "children": [
+              {
+                "html": "MRAWENIŠTĚ",
+                "level": 3,
+                "type": "heading",
+              },
+              {
+                "html": "<a href="/mraweniste/plenum">Plénum školy</a><br><a href="/mraweniste/spolek/">Spolek školy</a><br><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br><a href="/mraweniste/projekty/">Projekty</a><br><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br>Odkazy",
+                "type": "paragraph",
+              },
+            ],
+            "type": "column",
+            "width": "33.33%",
+          },
+        ],
+        "type": "columns",
+      },
+    ],
+    "type": "section",
+  },
+]
+`;

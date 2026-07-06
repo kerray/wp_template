@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    /* Standalone strict config (mirrors astro/tsconfigs/strict without extending
+       it, so astro-core typechecks on its own). Consumed as raw source by each
+       site's Astro/Vite, which applies its own tsconfig at build time. */
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "uno.preset.ts", "site.config.schema.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    /* .astro components/layouts are typechecked by the consuming site's
+       `astro check`, not by astro-core's standalone `tsc --noEmit`. The pure-TS
+       adapters ARE included (removed from this list) and must pass tsc. */
+    "src/components",
+    "src/layouts"
+  ]
+}

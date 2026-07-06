@@ -9,6 +9,18 @@ yarn-error.log
 package-lock.json
 yarn.lock
 
+# Astro layer (astro-core = template-owned, astro-template = scaffold source,
+# astro = per-site app). Ignore installed deps / build output / caches; keep the
+# core's package-lock.json TRACKED so template propagation is reproducible.
+astro-core/node_modules/
+astro-template/node_modules/
+astro-template/dist/
+astro-template/.astro/
+astro/node_modules/
+astro/dist/
+astro/.astro/
+!astro-core/package-lock.json
+
 # Logs
 logs/
 *.log

@@ -1,0 +1,31 @@
+---
+/**
+ * Embed.astro — renders an EmbedNode (video/social/oEmbed).
+ *
+ * When provider oEmbed markup is available (node.html), it is emitted directly:
+ * this is the ONE place allowed to output iframe/embed markup, which Prose.astro
+ * deliberately strips. The markup originates from trusted build-time oEmbed
+ * resolution, not arbitrary user input.
+ *
+ * Without markup, we degrade to a plain link to the source URL.
+ */
+import type { EmbedNode } from '../../lib/content/ir';
+
+interface Props {
+  node: EmbedNode;
+}
+const { node } = Astro.props;
+---
+{node.html ? (
+  <div
+    id={node.style?.anchor}
+    class:list={['my-4 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:h-auto', node.style?.className]}
+    set:html={node.html}
+  />
+) : (
+  <p id={node.style?.anchor} class:list={['my-4', node.style?.className]}>
+    <a href={node.url} target="_blank" rel="noopener noreferrer" class="text-accent underline">
+      {node.provider ? `${node.provider}: ${node.url}` : node.url}
+    </a>
+  </p>
+)}

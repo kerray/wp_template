@@ -1,0 +1,42 @@
+---
+/**
+ * Heading.astro — renders a HeadingNode as h1..h6.
+ *
+ * node.html is limited inline HTML (links, em/strong) emitted by the adapters,
+ * so it is injected with set:html. This is intentionally NOT routed through
+ * Prose.astro (which renders a <div>); a shared inline sanitizer is a phase-2
+ * hardening if untrusted inline HTML ever reaches headings.
+ */
+import type { HeadingNode } from '../../lib/content/ir';
+
+interface Props {
+  node: HeadingNode;
+}
+const { node } = Astro.props;
+
+// Dynamic HTML tag from the semantic heading level.
+const Tag = `h${node.level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
+// Size scale keyed by level (semantic colors + heading weight from the preset).
+const sizeByLevel: Record<number, string> = {
+  1: 'text-4xl',
+  2: 'text-3xl',
+  3: 'text-2xl',
+  4: 'text-xl',
+  5: 'text-lg',
+  6: 'text-base',
+};
+
+const alignClass =
+  node.style?.align === 'center' ? 'text-center' : node.style?.align === 'right' ? 'text-right' : '';
+---
+<Tag
+  id={node.style?.anchor}
+  class:list={[
+    'font-heading font-bold text-primary leading-tight my-4',
+    sizeByLevel[node.level],
+    alignClass,
+    node.style?.className,
+  ]}
+  set:html={node.html}
+/>

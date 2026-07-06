@@ -1,0 +1,73 @@
+---
+/**
+ * Header.astro — generic sticky site header.
+ *
+ * Brand: a named "brand" slot (logo/markup) with a text fallback of `siteName`.
+ * Nav: `nav` (site.nav.primary) as a single-level horizontal menu; a CSS-only
+ * <details> disclosure provides the mobile menu (no framework island).
+ * Semantic theme colors only (primary/accent).
+ */
+interface NavLink {
+  label: string;
+  href: string;
+  children?: NavLink[];
+}
+
+interface Props {
+  nav?: NavLink[];
+  siteName?: string;
+  homeHref?: string;
+}
+const { nav = [], siteName = '', homeHref = '/' } = Astro.props;
+
+// Container convention shared with Base/Section.
+const container = 'max-w-[var(--container-width,1080px)] mx-auto px-4';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => href !== '/' && (path === href || path.startsWith(href));
+---
+<header class="sticky top-0 z-50 bg-white border-b border-black/5 shadow-[0_0_7px_rgba(0,0,0,0.1)]">
+  <div class:list={[container, 'flex items-center justify-between gap-6 py-3']}>
+    <a href={homeHref} class="flex items-center no-underline shrink-0 font-heading font-bold text-primary text-lg" aria-label={siteName}>
+      <slot name="brand">{siteName}</slot>
+    </a>
+
+    <nav aria-label="Primary" class="flex items-center gap-5">
+      <ul class="hidden lg:flex items-center gap-x-6 list-none m-0 p-0 font-semibold text-[15px]">
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={[
+                'no-underline py-1 inline-block transition-colors hover:text-accent',
+                isActive(item.href) ? 'text-accent' : 'text-primary',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Mobile menu: native disclosure, no JS -->
+      <details class="lg:hidden relative">
+        <summary class="list-none cursor-pointer text-primary text-2xl" aria-label="Menu">&#9776;</summary>
+        <ul class="absolute right-0 top-full mt-2 min-w-[220px] bg-white rounded-b-lg shadow-[0_8px_24px_rgba(0,0,0,0.15)] py-2 list-none m-0 font-semibold z-50">
+          {nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={[
+                  'block px-4 py-2 no-underline hover:bg-primary hover:text-white',
+                  isActive(item.href) ? 'text-accent' : 'text-primary',
+                ]}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </nav>
+  </div>
+</header>

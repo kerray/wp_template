@@ -1,0 +1,90 @@
+---
+/**
+ * Base.astro — the shared HTML document shell.
+ *
+ * Props: { site, title, description?, lang? }. Renders <head> meta, a Header
+ * (primary nav + brand slot) and a Footer (footer nav + contact), with page
+ * content in the default <slot />.
+ *
+ * CONTAINER CONVENTION (used consistently across Header/Footer/Section):
+ *   `max-w-[var(--container-width,1080px)] mx-auto px-4`
+ * The `--container-width` custom property is set here from site.brand.containerWidth
+ * (falling back to 1080px), so the whole design system reads one width knob.
+ *
+ * Fonts/UnoCSS: `uno.css` is provided by the consuming Astro app's UnoCSS
+ * integration; webfonts are a site-branding concern loaded by the site, not here.
+ *
+ * NOTE (contract): SiteConfig is Agent A's type. To stay decoupled from its exact
+ * field names while remaining typed at the public boundary, the frontmatter reads
+ * fields through a small local `SiteView` structural view.
+ */
+import 'uno.css';
+import type { SiteConfig } from '../lib/config';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface NavLink {
+  label: string;
+  href: string;
+  children?: NavLink[];
+}
+interface SiteView {
+  name?: string;
+  brand?: { containerWidth?: string | number };
+  nav?: { primary?: NavLink[]; footer?: NavLink[] };
+  contact?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    ic?: string;
+    social?: Record<string, string | undefined>;
+  };
+  /** SiteConfig.locales is `{ default, supported }` (see site.config.schema). */
+  locales?: { default?: string; supported?: string[] };
+}
+
+interface Props {
+  site: SiteConfig;
+  title: string;
+  description?: string;
+  lang?: string;
+}
+const { site, title, description, lang } = Astro.props;
+
+// Structural view over SiteConfig (see NOTE above).
+const s = site as unknown as SiteView;
+const resolvedLang = lang ?? s.locales?.default ?? 'en';
+// No top-level `name` in SiteConfig; the site name lives under `contact.name`.
+const siteName = s.name ?? s.contact?.name ?? '';
+
+// One width knob → CSS var consumed by the container convention.
+const cw =
+  typeof s.brand?.containerWidth === 'number'
+    ? `${s.brand.containerWidth}px`
+    : s.brand?.containerWidth;
+const rootStyle = cw ? `--container-width:${cw}` : undefined;
+---
+<!doctype html>
+<html lang={resolvedLang} style={rootStyle}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={Astro.url.href} />
+  </head>
+  <body class="font-body min-h-screen flex flex-col">
+    <Header nav={s.nav?.primary} siteName={siteName}>
+      {/* Only forward the brand slot when the page actually provided one,
+          so Header's siteName text fallback still applies otherwise. */}
+      {Astro.slots.has('brand') && <slot name="brand" slot="brand" />}
+    </Header>
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <Footer nav={s.nav?.footer} contact={s.contact} siteName={siteName} />
+  </body>
+</html>

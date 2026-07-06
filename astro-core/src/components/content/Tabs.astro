@@ -1,0 +1,33 @@
+---
+/**
+ * Tabs.astro — renders a TabsNode with NO framework island.
+ *
+ * Implemented as an exclusive native disclosure group: each tab is a <details>
+ * sharing the same `name`, so opening one closes the others (HTML exclusive
+ * accordion). This is fully CSS/JS-free and accessible out of the box. A true
+ * ARIA tablist widget is a possible phase-2 enhancement; the accordion form is
+ * the simple, robust choice for the ~12 site-wide occurrences.
+ */
+import type { TabsNode } from '../../lib/content/ir';
+import ContentRenderer from './ContentRenderer.astro';
+
+interface Props {
+  node: TabsNode;
+}
+const { node } = Astro.props;
+
+// Unique group name so multiple Tabs on one page stay independent.
+const group = `tabs-${Math.random().toString(36).slice(2, 9)}`;
+---
+<div id={node.style?.anchor} class:list={['flex flex-col gap-2 my-4', node.style?.className]}>
+  {node.tabs.map((tab, i) => (
+    <details name={group} open={i === 0} class="border border-accent/30 rounded overflow-hidden">
+      <summary class="cursor-pointer select-none font-heading font-semibold text-primary px-4 py-2 bg-primary/5 hover:bg-primary/10">
+        {tab.title}
+      </summary>
+      <div class="px-4 py-3">
+        <ContentRenderer nodes={tab.children} />
+      </div>
+    </details>
+  ))}
+</div>

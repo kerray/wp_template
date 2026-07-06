@@ -1,0 +1,57 @@
+---
+/**
+ * Prose.astro — the SINGLE sanitized `set:html` sink for the whole design system.
+ *
+ * Every node that carries raw/rich HTML (paragraph, list, html, and blurb bodies)
+ * funnels through here. HTML is sanitized with ultrahtml's sanitize transformer
+ * (allowlist of typical rich-text tags) before being injected via set:html.
+ *
+ * Security: script/style/iframe (and anything not on the allowlist) are stripped.
+ * Media embeds must NOT come through here — they go through Embed.astro, which is
+ * allowed to emit provider oEmbed markup.
+ */
+import { transform } from 'ultrahtml';
+import sanitize from 'ultrahtml/transformers/sanitize';
+import type { NodeStyle } from '../../lib/content/ir';
+
+interface Props {
+  html: string;
+  class?: string;
+  style?: NodeStyle;
+}
+const { html, class: className = '', style } = Astro.props;
+
+// Allowlist-based sanitization: only typical rich-text elements survive.
+// script / style / iframe / object / embed / form are excluded by omission.
+const clean = await transform(html ?? '', [
+  sanitize({
+    allowElements: [
+      'p', 'br', 'hr', 'span', 'div',
+      'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins', 'mark', 'small', 'sub', 'sup', 'abbr', 'cite', 'q',
+      'a',
+      'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+      'blockquote', 'code', 'pre', 'kbd', 'samp', 'var', 'time',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'figure', 'figcaption', 'img', 'picture', 'source',
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+    ],
+    allowAttributes: {
+      href: ['a'], target: ['a'], rel: ['a'], title: ['*'],
+      src: ['img', 'source'], srcset: ['img', 'source'], sizes: ['img', 'source'],
+      alt: ['img'], loading: ['img'], width: ['img', 'col', 'td', 'th'], height: ['img'],
+      class: ['*'], id: ['*'], datetime: ['time', 'del', 'ins'],
+      colspan: ['td', 'th'], rowspan: ['td', 'th'], scope: ['th'],
+      'aria-label': ['*'], 'aria-hidden': ['*'], role: ['*'],
+    },
+  }),
+]);
+
+// Alignment is the only structural NodeStyle honored here (design system wins).
+const alignClass =
+  style?.align === 'center' ? 'text-center' : style?.align === 'right' ? 'text-right' : '';
+---
+<div
+  id={style?.anchor}
+  class:list={['prose max-w-none', alignClass, style?.className, className]}
+  set:html={clean}
+/>

@@ -1,0 +1,30 @@
+---
+/**
+ * Section.astro — renders a SectionNode (DIVI section / top-level block group).
+ *
+ * A full-bleed <section> with vertical rhythm. Unless `fullWidth`, its children
+ * are constrained to the site container width. Children recurse through
+ * ContentRenderer (Section maps no node types itself — dispatch stays central).
+ *
+ * Container convention (see Base.astro): `max-w-[var(--container-width,1080px)]`.
+ */
+import type { SectionNode } from '../../lib/content/ir';
+import ContentRenderer from './ContentRenderer.astro';
+
+interface Props {
+  node: SectionNode;
+}
+const { node } = Astro.props;
+
+const alignClass =
+  node.style?.align === 'center' ? 'text-center' : node.style?.align === 'right' ? 'text-right' : '';
+---
+<section id={node.style?.anchor} class:list={['py-8', alignClass, node.style?.className]}>
+  {node.fullWidth ? (
+    <ContentRenderer nodes={node.children} />
+  ) : (
+    <div class="max-w-[var(--container-width,1080px)] mx-auto px-4">
+      <ContentRenderer nodes={node.children} />
+    </div>
+  )}
+</section>

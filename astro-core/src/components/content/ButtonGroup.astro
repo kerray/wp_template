@@ -1,0 +1,25 @@
+---
+/**
+ * ButtonGroup.astro — renders a ButtonGroupNode as a flex row of Buttons.
+ */
+import type { ButtonGroupNode } from '../../lib/content/ir';
+import Button from '../Button.astro';
+
+interface Props {
+  node: ButtonGroupNode;
+}
+const { node } = Astro.props;
+
+const justify =
+  node.style?.align === 'center'
+    ? 'justify-center'
+    : node.style?.align === 'right'
+      ? 'justify-end'
+      : 'justify-start';
+---
+<div
+  id={node.style?.anchor}
+  class:list={['flex flex-wrap items-center gap-3 my-4', justify, node.style?.className]}
+>
+  {node.children.map((btn) => <Button node={btn} />)}
+</div>

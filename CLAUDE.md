@@ -117,6 +117,27 @@ Claude automatically uses these skills when relevant:
 | `wordpress-management` | Docker, WP-CLI, plugins/themes, environment |
 | `wordpress-testing` | Site testing, Playwright, error detection |
 | `backup-restore` | Database backups, UpdraftPlus restoration |
+| `divi-to-astro-content` | Migrate DIVI page bodies into the Astro frontend (curated Markdown / feed) |
+
+## Astro static frontend
+
+Optionally replace a site's PHP frontend with a static **Astro 7 + UnoCSS** site
+served from headless WordPress (Gutenberg or DIVI, via adapters). The shared
+layer lives in `astro-core/` (template-owned) + `astro-template/` (scaffold);
+the per-site app is `astro/` (created by `just astro-init`, sync-protected).
+
+| Task | Command |
+|------|---------|
+| Scaffold the app | `just astro-init` |
+| Dev server (HMR :4321) | `just astro-dev` |
+| Static build | `just astro-build` |
+| Type-check | `just astro-check` |
+| Deploy (build + FTP) | `just astro-deploy` |
+| Install headless mu-plugin | `just astro-wp-plugin` (`remote` = FTP) |
+| Status / help | `just astro-status` / `just astro-help` |
+
+See **[Astro Headless WordPress](docs/ASTRO_HEADLESS_WORDPRESS.md)** for the full
+architecture, and the `divi-to-astro-content` skill for content migration.
 
 ## Documentation
 
@@ -128,6 +149,7 @@ Detailed guides are in `docs/`:
 - **[Testing](docs/testing.md)** - Test suite, Playwright setup
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues & solutions
 - **[MCP Installation](docs/wordpress-mcp-installation.md)** - WordPress MCP plugin
+- **[Astro Headless WordPress](docs/ASTRO_HEADLESS_WORDPRESS.md)** - Static Astro frontend layer
 
 ### Workflows
 

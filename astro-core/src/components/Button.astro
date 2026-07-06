@@ -1,0 +1,41 @@
+---
+/**
+ * Button.astro — design-system button/link.
+ *
+ * Dual-use:
+ *   1. Standalone:  <Button href="/x" variant="secondary">Label</Button>  (slot text)
+ *   2. From the IR: <Button node={buttonNode} />  (ContentRenderer maps 'button' here)
+ *
+ * Variants use semantic theme colors (primary/accent) — no hardcoded hex.
+ */
+import type { ButtonNode } from '../lib/content/ir';
+
+interface Props {
+  node?: ButtonNode;
+  href?: string;
+  variant?: string;
+  target?: string;
+  class?: string;
+}
+const { node, href, variant, target, class: className = '' } = Astro.props;
+
+const finalHref = node?.href ?? href ?? '#';
+const finalTarget = node?.target ?? target;
+const finalVariant = node?.variant ?? variant ?? 'primary';
+
+const base =
+  'inline-flex items-center justify-center font-heading leading-none no-underline rounded px-6 py-2.5 border-2 transition-colors duration-200';
+const variants: Record<string, string> = {
+  primary: 'bg-primary text-white border-primary hover:bg-accent hover:border-accent',
+  secondary: 'bg-transparent text-primary border-primary hover:bg-primary hover:text-white',
+};
+const variantClass = variants[finalVariant] ?? variants.primary;
+---
+<a
+  href={finalHref}
+  target={finalTarget}
+  rel={finalTarget === '_blank' ? 'noopener noreferrer' : undefined}
+  class:list={[base, variantClass, className]}
+>
+  {node ? node.text : <slot />}
+</a>

@@ -1,0 +1,51 @@
+---
+/**
+ * ContentImage.astro — renders an ImageNode.
+ *
+ * Plain <img loading="lazy"> with width/height when present, optionally wrapped
+ * in an <a>, and in a <figure> when a caption is present.
+ *
+ * NOTE: astro:assets (<Image>) optimization is a deliberate phase-2 upgrade —
+ * IR image src is a remote/root-relative WP upload URL, not a local import, so
+ * we emit a plain <img> here to keep astro-core build-time-decoupled from assets.
+ */
+import type { ImageNode } from '../../lib/content/ir';
+
+interface Props {
+  node: ImageNode;
+}
+const { node } = Astro.props;
+
+const alignClass =
+  node.style?.align === 'center'
+    ? 'mx-auto'
+    : node.style?.align === 'right'
+      ? 'ml-auto'
+      : '';
+---
+<figure id={node.style?.anchor} class:list={['my-4', node.style?.className]}>
+  {node.href ? (
+    <a href={node.href}>
+      <img
+        src={node.src}
+        alt={node.alt}
+        width={node.width}
+        height={node.height}
+        loading="lazy"
+        class:list={['block max-w-full h-auto', alignClass]}
+      />
+    </a>
+  ) : (
+    <img
+      src={node.src}
+      alt={node.alt}
+      width={node.width}
+      height={node.height}
+      loading="lazy"
+      class:list={['block max-w-full h-auto', alignClass]}
+    />
+  )}
+  {node.caption && (
+    <figcaption class="mt-2 text-sm text-center opacity-70">{node.caption}</figcaption>
+  )}
+</figure>

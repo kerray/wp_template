@@ -1,0 +1,76 @@
+---
+/**
+ * Footer.astro — generic site footer.
+ *
+ * Renders an optional footer nav (site.nav.footer), contact details and social
+ * links from site.contact. All fields are optional so partially-configured sites
+ * degrade gracefully. Contact is typed loosely to stay decoupled from Agent A's
+ * exact SiteConfig field names (see contract notes).
+ */
+interface NavLink {
+  label: string;
+  href: string;
+  children?: NavLink[];
+}
+
+interface Contact {
+  email?: string;
+  phone?: string;
+  address?: string;
+  ic?: string;
+  social?: Record<string, string | undefined>;
+}
+
+interface Props {
+  nav?: NavLink[];
+  contact?: Contact;
+  siteName?: string;
+}
+const { nav = [], contact = {}, siteName = '' } = Astro.props;
+
+const container = 'max-w-[var(--container-width,1080px)] mx-auto px-4';
+const year = new Date().getFullYear();
+
+// Social links: [label, url] pairs, skipping empties.
+const socials = Object.entries(contact.social ?? {}).filter(([, url]) => Boolean(url)) as [string, string][];
+---
+<footer class="bg-primary text-white/90 mt-16">
+  <div class:list={[container, 'py-10 flex flex-col gap-6 sm:flex-row sm:justify-between']}>
+    {nav.length > 0 && (
+      <nav aria-label="Footer">
+        <ul class="flex flex-wrap gap-x-5 gap-y-2 list-none m-0 p-0 font-semibold">
+          {nav.map((item) => (
+            <li>
+              <a href={item.href} class="no-underline text-white/90 hover:text-white">{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <div class="text-sm sm:text-right">
+      {contact.phone && <div>{contact.phone}</div>}
+      {contact.email && (
+        <div>
+          <a href={`mailto:${contact.email}`} class="text-white/90 underline hover:text-white">{contact.email}</a>
+        </div>
+      )}
+      {contact.address && <div>{contact.address}</div>}
+      {socials.length > 0 && (
+        <ul class="flex gap-3 mt-2 list-none m-0 p-0 sm:justify-end">
+          {socials.map(([label, url]) => (
+            <li>
+              <a href={url} class="text-white/90 underline capitalize hover:text-white" aria-label={label}>{label}</a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+
+  <div class="border-t border-white/15">
+    <div class:list={[container, 'py-4 text-xs text-white/70']}>
+      &copy; {year} {siteName}{contact.ic ? ` — IČ: ${contact.ic}` : ''}
+    </div>
+  </div>
+</footer>

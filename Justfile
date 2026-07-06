@@ -1198,3 +1198,161 @@ divi-help:
     @echo "  just divi-list <status>          # List content by status"
     @echo ""
     @echo "Documentation: docs/DIVI_MIGRATION_PLAN.md"
+
+# === Astro static frontend ===
+
+# Scaffold the per-site Astro app from astro-template/ (one-time)
+astro-init:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -d "astro" ]; then
+        echo "Error: ./astro already exists — refusing to overwrite the site app."
+        echo "       Edit astro/site.config.ts, or 'just astro-update' to relink core."
+        exit 1
+    fi
+    if [ ! -d "astro-template" ]; then
+        echo "Error: astro-template/ not found (run a template sync first)."
+        exit 1
+    fi
+    echo "Scaffolding ./astro from astro-template/ ..."
+    cp -r astro-template astro
+    # Seed .env from the example if the site doesn't have one yet.
+    if [ ! -f "astro/.env" ] && [ -f "astro/.env.example" ]; then
+        cp astro/.env.example astro/.env
+        echo "Created astro/.env (fill in WP_BASE_URL, FTP_*, HEADLESS_API_TOKEN)"
+    fi
+    # Best-effort: stamp the site name from SITE_CONFIG.md into site.config.ts,
+    # but only when it's a real value (not the template placeholder).
+    if [ -f "SITE_CONFIG.md" ]; then
+        name=$(grep -m1 '\*\*Site Name\*\*' SITE_CONFIG.md | sed -E 's/.*\*\*Site Name\*\*:[[:space:]]*//' | tr -d '\r')
+        if [ -n "$name" ] && ! echo "$name" | grep -q 'Enter your site name'; then
+            sed -i "s/Example Site/$name/g" astro/site.config.ts
+            echo "Set site name to: $name"
+        fi
+    fi
+    # Install the generic headless mu-plugin into the LOCAL WordPress.
+    if [ -d "astro-core/wp/mu-plugins" ]; then
+        mkdir -p src/wp-content/mu-plugins
+        cp -r astro-core/wp/mu-plugins/headless-api* src/wp-content/mu-plugins/ 2>/dev/null || true
+        echo "Copied headless-api mu-plugin into src/wp-content/mu-plugins/"
+        echo "[WARNING] Adapt headless-api-site.example.php -> headless-api-site.php for this site's routes."
+    fi
+    echo ""
+    echo "Next steps:"
+    echo "  1. Edit astro/site.config.ts (siteUrl, wp.baseUrl, contentEngine, brand, nav)"
+    echo "  2. Fill astro/.env (WP_BASE_URL, FTP_*, HEADLESS_API_TOKEN)"
+    echo "  3. just astro-dev        # dev server at http://localhost:${ASTRO_PORT:-4321}"
+
+# Start the Astro dev server (Docker node service, HMR, attached)
+astro-dev:
+    @echo "Starting Astro dev server at http://localhost:${ASTRO_PORT:-4321} (Ctrl-C to stop)"
+    @echo "Host-node alternative: cd astro && npm install && npm run dev"
+    docker compose --profile astro up node
+
+# Build the static site to astro/dist/ (Docker node service)
+astro-build:
+    @echo "Building static site -> astro/dist/ ..."
+    docker compose --profile astro run --rm node sh -c "npm install && npm run build"
+    @echo "Host-node alternative: cd astro && npm run build"
+
+# Type-check + template diagnostics (astro check)
+astro-check:
+    @echo "Running astro check ..."
+    docker compose --profile astro run --rm node sh -c "npm install && npm run check"
+    @echo "Host-node alternative: cd astro && npm run check"
+
+# Re-link @site/astro-core after a template sync (re-run npm install)
+astro-update:
+    @echo "Re-installing astro deps (relinks @site/astro-core) ..."
+    docker compose --profile astro run --rm node npm install
+    @echo "Done. Host-node alternative: cd astro && npm install"
+
+# Install headless mu-plugin (local); pass 'remote' to upload via FTP
+# Usage: just astro-wp-plugin           (local copy into src/)
+#        just astro-wp-plugin remote     (FTP upload to production)
+astro-wp-plugin *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -d "astro-core/wp/mu-plugins" ]; then
+        echo "Error: astro-core/wp/mu-plugins not found (run a template sync first)."
+        exit 1
+    fi
+    if echo "{{args}}" | grep -qw remote; then
+        if [ -z "${FTP_HOST:-}" ] || [ -z "${FTP_USER:-}" ] || [ -z "${FTP_PASSWORD:-}" ] || [ -z "${FTP_PATH:-}" ]; then
+            echo "Error: FTP_HOST, FTP_USER, FTP_PASSWORD, FTP_PATH must be set in .env"
+            exit 1
+        fi
+        echo "Uploading headless-api mu-plugin to ${FTP_HOST}:${FTP_PATH}/wp-content/mu-plugins/ ..."
+        lftp -c "set ssl:verify-certificate no; set net:timeout 60; set net:max-retries 2; set ftp:passive-mode on; open ftp://${FTP_USER}:${FTP_PASSWORD}@${FTP_HOST}; lcd astro-core/wp/mu-plugins; cd ${FTP_PATH}/wp-content/mu-plugins; mirror --reverse --only-newer --parallel=3 --verbose --include-glob 'headless-api*' .; bye"
+        echo "Done. Remember: headless-api-site.php (per-site routes) is NOT auto-uploaded."
+    else
+        mkdir -p src/wp-content/mu-plugins
+        cp astro-core/wp/mu-plugins/headless-api.php src/wp-content/mu-plugins/ 2>/dev/null || true
+        cp -r astro-core/wp/mu-plugins/headless-api src/wp-content/mu-plugins/ 2>/dev/null || true
+        echo "Copied headless-api mu-plugin into src/wp-content/mu-plugins/ (local)"
+        echo "[WARNING] Adapt headless-api-site.example.php for this site's custom routes."
+    fi
+
+# Build then deploy astro/dist/ to the FTP target (astro-core/scripts/deploy-static.sh)
+astro-deploy: astro-build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ ! -f "astro-core/scripts/deploy-static.sh" ]; then
+        echo "Error: astro-core/scripts/deploy-static.sh not found (run a template sync first)."
+        exit 1
+    fi
+    # Prefer the site-owned astro/.env (FTP_*, DIST_DIR), fall back to root .env.
+    if [ -f "astro/.env" ]; then
+        set -a; . astro/.env; set +a
+    elif [ -f ".env" ]; then
+        set -a; . .env; set +a
+    fi
+    echo "Deploying astro/dist/ to ${FTP_HOST:-<FTP_HOST>} ..."
+    bash astro-core/scripts/deploy-static.sh
+
+# Show Astro frontend status (app present? deps installed? built?)
+astro-status:
+    #!/usr/bin/env bash
+    echo "=== Astro Frontend Status ==="
+    echo ""
+    if [ -d "astro" ]; then
+        echo "App:          ./astro present"
+    else
+        echo "App:          MISSING — run 'just astro-init'"
+    fi
+    if [ -d "astro/node_modules" ]; then
+        echo "Dependencies: installed"
+    else
+        echo "Dependencies: not installed — run 'just astro-build' or 'cd astro && npm install'"
+    fi
+    if [ -d "astro/dist" ]; then
+        files=$(find astro/dist -type f 2>/dev/null | wc -l)
+        built=$(date -r astro/dist '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo "unknown")
+        echo "Build:        astro/dist present ($files files, built $built)"
+    else
+        echo "Build:        not built — run 'just astro-build'"
+    fi
+    echo ""
+    echo "Documentation: docs/ASTRO_HEADLESS_WORDPRESS.md"
+
+# Show Astro frontend help
+astro-help:
+    @echo "Astro Static Frontend Commands"
+    @echo "=============================="
+    @echo ""
+    @echo "Setup"
+    @echo "  just astro-init          # Scaffold ./astro from astro-template/ (one-time)"
+    @echo "  just astro-wp-plugin     # Install headless mu-plugin locally"
+    @echo "  just astro-wp-plugin remote  # Upload headless mu-plugin via FTP"
+    @echo ""
+    @echo "Develop"
+    @echo "  just astro-dev           # Dev server (Docker, HMR :${ASTRO_PORT:-4321})"
+    @echo "  just astro-check         # Type-check + template diagnostics"
+    @echo "  just astro-update        # Re-link @site/astro-core after a template sync"
+    @echo ""
+    @echo "Build & Deploy"
+    @echo "  just astro-build         # Static build -> astro/dist/"
+    @echo "  just astro-deploy        # Build + FTP mirror dist/ to production"
+    @echo "  just astro-status        # Show app/deps/build status"
+    @echo ""
+    @echo "Documentation: docs/ASTRO_HEADLESS_WORDPRESS.md"

@@ -1,0 +1,25 @@
+---
+/**
+ * Card.astro — generic surface card. Renders a link when `href` is given
+ * (with a subtle lift on hover), otherwise a plain container.
+ * Uses semantic theme colors — no hardcoded hex.
+ */
+interface Props {
+  href?: string;
+  class?: string;
+}
+const { href, class: className = '' } = Astro.props;
+
+const base =
+  'block bg-white rounded-[10px] shadow-[0_2px_18px_rgba(0,0,0,0.12)] p-5 border border-black/5';
+const linkExtra = 'no-underline transition-transform hover:-translate-y-1 hover:shadow-[0_6px_28px_rgba(0,0,0,0.2)]';
+---
+{href ? (
+  <a href={href} class:list={[base, linkExtra, className]}>
+    <slot />
+  </a>
+) : (
+  <div class:list={[base, className]}>
+    <slot />
+  </div>
+)}

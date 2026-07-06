@@ -1,0 +1,53 @@
+---
+/**
+ * Blurb.astro — renders a BlurbNode (DIVI et_pb_blurb / core/media-text):
+ * optional media (image or icon) + optional title + rich body, optionally linked.
+ *
+ * The rich body is routed through Prose.astro (the single sanitized HTML sink).
+ * mediaPosition drives the flex direction (top/left/right).
+ */
+import type { BlurbNode } from '../../lib/content/ir';
+import Prose from './Prose.astro';
+
+interface Props {
+  node: BlurbNode;
+}
+const { node } = Astro.props;
+
+const pos = node.mediaPosition ?? 'top';
+// Static class literals (not interpolated) so UnoCSS can extract them.
+const layoutClass =
+  pos === 'left'
+    ? 'flex flex-col md:flex-row gap-4 items-start'
+    : pos === 'right'
+      ? 'flex flex-col md:flex-row-reverse gap-4 items-start'
+      : 'flex flex-col gap-3';
+
+const hasMedia = Boolean(node.image || node.icon);
+---
+<div id={node.style?.anchor} class:list={['my-4', node.style?.className]}>
+  <div class:list={[layoutClass]}>
+    {hasMedia && (
+      <div class="shrink-0">
+        {node.image ? (
+          <img src={node.image} alt={node.title ?? ''} loading="lazy" class="block max-w-full h-auto" />
+        ) : (
+          /* Icon hint from source builder; rendered as a decorative marker. */
+          <span class="inline-block w-12 h-12 rounded-full bg-primary/10" aria-hidden="true"></span>
+        )}
+      </div>
+    )}
+    <div class="min-w-0">
+      {node.title && (
+        <h3 class="font-heading font-bold text-primary text-xl mb-2">
+          {node.href ? (
+            <a href={node.href} class="no-underline text-primary hover:text-accent">{node.title}</a>
+          ) : (
+            node.title
+          )}
+        </h3>
+      )}
+      <Prose html={node.html} />
+    </div>
+  </div>
+</div>

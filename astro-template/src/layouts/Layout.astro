@@ -1,0 +1,25 @@
+---
+// Thin per-site layout. Resolves site.config once and binds it into the shared
+// Base layout so pages never pass `site` manually — they just wrap content in
+// <Layout title="…">. Add site-specific <head> extras (fonts, favicons, meta)
+// here; install the matching @fontsource packages and import their CSS below.
+//
+// import '@fontsource/open-sans/400.css';   // example — fonts are site-specific
+import Base from '@site/astro-core/layouts/Base.astro';
+import { resolveConfig } from '@site/astro-core/config';
+import config from '../../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const site = resolveConfig(config);
+// Base requires a definite title; fall back to the site name when a page omits it.
+const pageTitle = title ?? site.contact?.name ?? '';
+---
+
+<Base site={site} title={pageTitle} description={description}>
+  <slot />
+</Base>

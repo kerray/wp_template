@@ -1,0 +1,30 @@
+---
+/**
+ * Column.astro — renders a ColumnNode inside a Columns row.
+ *
+ * Responsive collapse: full width below `md`; from `md` the CSS width fraction
+ * (e.g. "33.33%") drives flex-basis via a per-column CSS variable so the value
+ * survives a media query (inline styles can't be media-scoped). Children recurse
+ * through ContentRenderer.
+ */
+import type { ColumnNode } from '../../lib/content/ir';
+import ContentRenderer from './ContentRenderer.astro';
+
+interface Props {
+  node: ColumnNode;
+}
+const { node } = Astro.props;
+
+// Feed the width fraction to `md:basis-[var(--col-basis)]` (static utility).
+const styleVar = node.width ? `--col-basis:${node.width}` : undefined;
+---
+<div
+  id={node.style?.anchor}
+  style={styleVar}
+  class:list={[
+    'basis-full md:basis-[var(--col-basis,100%)] md:grow md:shrink min-w-0',
+    node.style?.className,
+  ]}
+>
+  <ContentRenderer nodes={node.children} />
+</div>

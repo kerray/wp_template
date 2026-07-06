@@ -1,0 +1,68 @@
+# ============================================================================
+# Static Astro site — apex .htaccess (Apache / shared PHP hosting)
+# ============================================================================
+#
+# Deployment strategy (baseline): the built static site lives at the apex
+# docroot (e.g. https://example.com/) and WordPress is moved to a subdomain
+# (e.g. https://wp.example.com/) that serves the REST API + wp-admin. In that
+# layout the pass-through rules below are NOT needed — the apex only ever serves
+# static files — but they are kept (commented) for the single-domain fallback.
+#
+# Single-domain fallback: if WordPress must stay on the SAME domain as the
+# static site, uncomment the "WordPress pass-through" block so /wp-admin,
+# /wp-json, /wp-login.php and /wp-content keep reaching PHP while everything
+# else is served statically. Order matters: the pass-throughs must come BEFORE
+# the SPA/static fallback.
+# ============================================================================
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json  .webmanifest
+  AddType image/svg+xml              .svg
+  AddType application/wasm           .wasm
+</IfModule>
+
+# ---- Long-cache Astro's fingerprinted assets ------------------------------
+# Files under /_astro/* are content-hashed; safe to cache for a year, immutable.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|mjs|css|woff2?|ttf|otf|svg|png|jpg|jpeg|gif|webp|avif|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # HTML must always revalidate so content updates are picked up.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ---- WordPress pass-through (single-domain fallback — commented) ---------
+  # Uncomment to keep WP on the same domain as the static site.
+  # RewriteRule ^wp-admin(/.*)?$   - [L]
+  # RewriteRule ^wp-login\.php$    - [L]
+  # RewriteRule ^wp-json(/.*)?$    - [L]
+  # RewriteRule ^wp-content(/.*)?$ - [L]
+  # RewriteRule ^wp-includes(/.*)?$ - [L]
+
+  # ---- Static-first serving -----------------------------------------------
+  # Serve an existing file/dir as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Pretty-URL directory index: /about -> /about/index.html
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^(.*?)/?$ /$1/index.html [L]
+
+  # Bare path -> matching .html: /about -> /about.html
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+?)/?$ /$1.html [L]
+
+  # ---- 404 fallback --------------------------------------------------------
+  # Serve the generated 404 page for anything unmatched.
+  ErrorDocument 404 /404.html
+</IfModule>

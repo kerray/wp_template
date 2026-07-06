@@ -193,6 +193,36 @@ services:
       - sftp
       - all
 
+  # ==========================================================================
+  # Node / Astro dev server (Optional - use --profile astro)
+  # Static frontend for headless WordPress. `just astro-dev` runs this attached
+  # with HMR at http://localhost:${ASTRO_PORT:-4321}.
+  #
+  # Volume layout mirrors the `"@site/astro-core": "file:../astro-core"` dep so
+  # npm resolves it inside the container:
+  #   ./astro       -> /app          (the site app; working_dir)
+  #   ./astro-core  -> /astro-core    (the shared core package)
+  # The file: dep is relative to /app, so `file:../astro-core` = /app/../astro-core
+  # = /astro-core, which is exactly where astro-core is mounted. Verified.
+  # ==========================================================================
+  node:
+    image: node:22-alpine
+    working_dir: /app
+    restart: unless-stopped
+    ports:
+      - "${ASTRO_PORT:-4321}:4321"
+    volumes:
+      - ./astro:/app
+      - ./astro-core:/astro-core
+    # Install deps (links ../astro-core) then start Astro bound to all
+    # interfaces so the mapped port is reachable from the host.
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - wordpress_network
+    profiles:
+      - astro
+      - all
+
 networks:
   wordpress_network:
     driver: bridge

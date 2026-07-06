@@ -1,0 +1,73 @@
+---
+/**
+ * PostList.astro — build-time rendering of a PostListNode (DIVI et_pb_blog /
+ * core/query).
+ *
+ * DECOUPLING: astro-core does not fetch data itself, to avoid a hard coupling to
+ * the site's WordPress data layer. The consuming site (or its [...slug] page)
+ * resolves the query via fetchPosts/fetchCollection from '../../lib/wordpress.ts'
+ * and passes the results in as the optional `items` prop. When `items` is absent
+ * we render a clearly-marked placeholder so the build never fails.
+ *
+ * Example wiring at the site level (pseudocode):
+ *   const items = await fetchCollection(node.postType, { perPage: node.perPage, categories: node.categories });
+ *   <PostList node={node} items={items} />
+ */
+import type { PostListNode } from '../../lib/content/ir';
+import Card from '../Card.astro';
+
+/** Minimal, loose shape — the site's data layer decides the real fields. */
+interface PostItem {
+  title?: string;
+  href?: string;
+  url?: string;
+  link?: string;
+  excerpt?: string;
+  image?: string;
+  date?: string;
+}
+
+interface Props {
+  node: PostListNode;
+  items?: PostItem[];
+}
+const { node, items } = Astro.props;
+
+// Column count → static grid class (literal so UnoCSS extracts it).
+const cols = node.columns ?? 3;
+const gridClass =
+  cols >= 4
+    ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4'
+    : cols === 2
+      ? 'grid gap-6 sm:grid-cols-2'
+      : cols === 1
+        ? 'grid gap-6'
+        : 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3';
+
+const hrefOf = (p: PostItem) => p.href ?? p.url ?? p.link ?? '#';
+---
+{items && items.length > 0 ? (
+  <div id={node.style?.anchor} class:list={[gridClass, 'my-4', node.style?.className]}>
+    {items.map((post) => (
+      <Card href={hrefOf(post)}>
+        {post.image && (
+          <img src={post.image} alt={post.title ?? ''} loading="lazy" class="block w-full h-auto rounded mb-3" />
+        )}
+        {post.title && <h3 class="font-heading font-bold text-primary text-lg mb-1">{post.title}</h3>}
+        {post.date && <p class="text-sm opacity-60 m-0">{post.date}</p>}
+        {post.excerpt && <p class="mt-2 m-0">{post.excerpt}</p>}
+      </Card>
+    ))}
+  </div>
+) : (
+  /* TODO(site): pass `items` fetched via fetchCollection/fetchPosts for postType
+     "{node.postType}". astro-core stays decoupled from the WP data layer. */
+  <div
+    id={node.style?.anchor}
+    class:list={['my-4 p-4 rounded border border-dashed border-accent/50 text-sm opacity-70', node.style?.className]}
+  >
+    Post list placeholder — postType: <code>{node.postType}</code>, perPage: {node.perPage}
+    {node.categories?.length ? `, categories: ${node.categories.join(', ')}` : ''}.
+    Wire data via <code>items</code> at the site level.
+  </div>
+)}

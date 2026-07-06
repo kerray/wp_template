@@ -1,0 +1,47 @@
+[et_pb_section fb_built="1" _builder_version="3.22" background_image="http://localhost:8090/wp-content/uploads/2018/04/waldorf-pozadi-web-small-2.jpg" custom_padding="44px|0px|66px|0px|false|false" top_divider_color="#ffffff" top_divider_height="18px" bottom_divider_style="wave" bottom_divider_color="#ffffff" bottom_divider_height="32px" locked="off" global_colors_info="{}"][et_pb_row _builder_version="3.25" custom_padding="0|0px|0|0px|false|false" global_colors_info="{}"][et_pb_column type="4_4" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_text _builder_version="4.10.4" text_font="||||||||" text_text_color="#ffffff" text_font_size="16px" text_letter_spacing="1px" header_font="||||||||" header_text_color="#ffffff" header_font_size="50px" header_letter_spacing="2px" module_alignment="center" custom_margin="||" custom_padding="10px|0px|10px|0px|true" text_text_shadow_style="preset3" text_text_shadow_color="#000000" header_text_shadow_style="preset3" header_text_shadow_color="#474747" border_radii="on|10px|10px|10px|10px" border_color_all="#ffffff" global_colors_info="{}"]<h1 style="text-align: center;">CHARAKTERISTIKA STUDIA</h1>[/et_pb_text][/et_pb_column][/et_pb_row][/et_pb_section][et_pb_section fb_built="1" _builder_version="3.22" custom_padding="0|0px|0|0px|false|false" locked="off" global_colors_info="{}"][et_pb_row _builder_version="3.25" custom_padding="0|0px|0|0px|false|false" global_colors_info="{}"][et_pb_column type="4_4" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_text _builder_version="4.11.2" text_font="||||||||" text_font_size="14px" link_font_size="14px" header_font="||||||||" custom_padding="||0px|||" global_module="302" saved_tabs="all" global_colors_info="{}"]<p>[wpseo_breadcrumb]</p>
+[/et_pb_text][/et_pb_column][/et_pb_row][/et_pb_section][et_pb_section fb_built="1" _builder_version="3.22" custom_padding="28px|0px|54px|0px|false|false" global_colors_info="{}"][et_pb_row _builder_version="3.25" border_radii="on|5px|5px|5px|5px" border_width_all="1px" border_color_all="#f0d118" global_colors_info="{}"][et_pb_column type="4_4" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_accordion _builder_version="4.12.0" _module_preset="default" hover_enabled="0" global_colors_info="{}" sticky_enabled="0"][et_pb_accordion_item title="Epochové vyučování (dvouhodinový vyučovací blok trvající 3-4 týdny)" open="on" _builder_version="4.12.0" _module_preset="default" global_colors_info="{}"]<p>Běžný školní den je zahajován epochovým vyučováním, ve kterém se žáci v bloku dvou hodin věnují intenzivně, po dobu 3 - 4 týdnů jednomu z hlavních vyučovacích předmětů.</p>
+<p>Epochové vyučování zahrnuje například tyto hlavní předměty - český jazyk, matematika, dějepis, fyzika, chemie, biologie, zeměpis.</p>
+<p>Na toto hlavní vyučování může navazovat druhé epochové vyučování dalších předmětů či několikatýdenní umělecké kurzy vyučované v podobných blocích. Hlavní epochy a většina dalších epoch jsou pro celou třídu v 1. - 3. ročníku společné.</p>
+<p>Ostatní vyučování v podobě běžných 45 minutových hodin zahrnuje jednak předměty, které jsou společné pro celou třídu – například cizí jazyky, výpočetní technika, cvičné hodiny českého jazyka a matematiky, tak předměty podle zvoleného studijního zaměření.</p>[/et_pb_accordion_item][et_pb_accordion_item title="Rozšiřující profilové předměty pro jednotlivá zaměření" _builder_version="4.12.0" _module_preset="default" global_colors_info="{}" open="off"]<ul>
+<li>humanitní (pedagogika, psychologie, základy společenských věd, kulturní dějiny, umělecké předměty, cizí jazyky)</li>
+<li>přírodovědné (biologie, chemie, zeměpis, matematika, fyzika, laboratorní cvičení)</li>
+<li>technické (matematika, fyzika, technické kreslení, strojírenská technologie, technická mechanika, deskriptivní geometrie)</li>
+</ul>[/et_pb_accordion_item][et_pb_accordion_item title="Umělecké a pohybové předměty a kurzy" _builder_version="4.12.0" _module_preset="default" global_colors_info="{}" open="off"]<ul>
+<li>zpěv</li>
+<li>sbor</li>
+<li>orchestr</li>
+<li>divadlo</li>
+<li>eurytmie (umělecká pohybová výchova)</li>
+<li>figurální kresba</li>
+<li>malba</li>
+<li>modelování</li>
+<li>sochařství</li>
+<li>kovotepectví</li>
+<li>dřevořezba</li>
+<li>kovářství</li>
+<li>knihvazačství</li>
+</ul>[/et_pb_accordion_item][et_pb_accordion_item title="Několikatýdenní praktika a exkurze" _builder_version="4.12.0" _module_preset="default" hover_enabled="0" global_colors_info="{}" open="off" sticky_enabled="0"]<h3>V průběhu každého ročníku absolvují všichni žáci 1 – 2 týdenní praktikum nejen na půdě lycea, ale především v terénu.</h3>
+<p style="padding-left: 40px;">1. ročník: zeměměřické praktikum</p>
+<p style="padding-left: 40px;">2. ročník: lesnické / ekologické praktikum</p>
+<p style="padding-left: 40px;">3. ročník: sociální / průmyslové praktikum</p>
+<p>&nbsp;</p>
+<h3>V každém ročníku je dále 3 – 4 týdenní prostor pro:</h3>
+<ul>
+<li>jazykové výměnné pobyty v zahraničních školách</li>
+<li>realizaci různých projektů a úprav učebního plánu podle potřeb školy</li>
+</ul>
+<h3>Ve 3. ročníku absolvují žáci navíc:</h3>
+<ul>
+<li>třídní studijní cestu (např. na téma historie umění)</li>
+<li>nastudování třídní divadelní hry</li>
+<li>vypracování dlouhodobé ročníkové práci na zvolené téma (práce je jedním z podkladů k maturitní zkoušce).</li>
+</ul>[/et_pb_accordion_item][et_pb_accordion_item title="2 cizí jazyky" _builder_version="4.12.0" _module_preset="default" global_colors_info="{}" open="off"]<ul>
+<li>Škola nabízí výuku cizího jazyka I (anglický jazyk) a cizího jazyka II (německý jazyk). Podle možností školy a zájmu žáků mohou být nabídnuty i jiné živé světové jazyky.</li>
+<li>Ve všech případech výuky jazyků dbá škola o dosažení rozšířené konverzační úrovně.</li>
+</ul>[/et_pb_accordion_item][et_pb_accordion_item title="Hodnocení studijních výsledků formou slovního hodnocení po celou dobu studia" _builder_version="4.12.0" _module_preset="default" global_colors_info="{}" open="off"]<p>Studijní výsledky žáků jsou po celou dobu docházky hodnoceny slovně. Nejsou známkovány, ale jsou popisovány se zřetelem na silné a slabé stránky procesu tak, aby z nich žák dokázal čerpat zřetelnou inspiraci pro svou další práci a seberozvoj.</p>[/et_pb_accordion_item][/et_pb_accordion][/et_pb_column][/et_pb_row][/et_pb_section][et_pb_section fb_built="1" _builder_version="3.22" background_image="http://localhost:8090/wp-content/uploads/2018/04/waldorf-pozadi-web-small-2.jpg" custom_padding="33px|0px|23px|0px|false|false" top_divider_style="wave" top_divider_color="#ffffff" top_divider_height="11px" top_divider_repeat="2x" top_divider_flip="vertical" bottom_divider_style="wave" bottom_divider_color="#ffffff" bottom_divider_height="32px" locked="off" global_colors_info="{}"][/et_pb_section][et_pb_section fb_built="1" _builder_version="3.0.105" custom_padding="0|0px|0|0px|false|false" global_module="376" saved_tabs="all" locked="off" global_colors_info="{}"][et_pb_row column_structure="1_3,1_3,1_3" _builder_version="3.25" global_colors_info="{}"][et_pb_column type="1_3" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_image src="http://localhost:8090/wp-content/uploads/2018/04/waldorfska-skola-brno_color_200px.png" align_tablet="center" align_phone="" align_last_edited="on|desktop" _builder_version="3.23" global_colors_info="{}"][/et_pb_image][et_pb_text _builder_version="4.11.2" text_line_height="1.2em" custom_margin="|30px||30px" global_colors_info="{}"]<p><a href="/kalendar/">Kalendář akcí</a><br /><a href="http://localhost:8090/zakladni-skola/aktualni-informace">Aktuality</a><br /><a href="/kontakt/">Kontakty</a><br /><a href="/o-skole/uredni-deska/">Úřední deska</a></p>[/et_pb_text][/et_pb_column][et_pb_column type="1_3" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_text _builder_version="4.11.2" text_line_height="4em" custom_margin="|30px||30px" global_colors_info="{}"]<h3></h3>
+<h3></h3>
+<h3></h3>
+<h3><a href="/materska-skola/">MATEŘSKÁ ŠKOLA</a></h3>
+<h3><a href="/zakladni-skola/">ZÁKLADNÍ ŠKOLA</a></h3>
+<h3><a href="/stredni-skola/">STŘEDNÍ ŠKOLA</a></h3>[/et_pb_text][/et_pb_column][et_pb_column type="1_3" _builder_version="3.25" custom_padding="|||" global_colors_info="{}" custom_padding__hover="|||"][et_pb_text _builder_version="4.12.0" text_line_height="1.2em" header_line_height="2em" custom_margin="|30px||30px" global_colors_info="{}"]<h3>MRAWENIŠTĚ</h3>
+<p>Spolek školy<br /><a href="http://nf-waldorf-brno.cz" target="_blank" rel="noopener" title="Nadační fond Waldorf Brno">Nadační fond Waldorf Brno</a><br />Plénum školy<br /><a href="/mraweniste/prednasky/">Přednášky a semináře</a><br /><a href="/mraweniste/projekty/">Projekty</a><br /><a href="/mraweniste/zajmove-krouzky/">Zájmové kroužky</a><br />Partneři školy<br />Odkazy</p>[/et_pb_text][/et_pb_column][/et_pb_row][/et_pb_section]

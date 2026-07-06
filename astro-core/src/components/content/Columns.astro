@@ -1,0 +1,21 @@
+---
+/**
+ * Columns.astro — renders a ColumnsNode (DIVI row / core/columns).
+ *
+ * A responsive flex row: stacked full-width below `md`, side-by-side from `md`.
+ * Each child Column controls its own flex-basis from its width fraction.
+ */
+import type { ColumnsNode } from '../../lib/content/ir';
+import Column from './Column.astro';
+
+interface Props {
+  node: ColumnsNode;
+}
+const { node } = Astro.props;
+---
+<div
+  id={node.style?.anchor}
+  class:list={['flex flex-col md:flex-row md:flex-wrap gap-6 my-4', node.style?.className]}
+>
+  {node.children.map((col) => <Column node={col} />)}
+</div>

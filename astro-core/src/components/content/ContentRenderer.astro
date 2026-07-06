@@ -1,0 +1,87 @@
+---
+/**
+ * ContentRenderer.astro — the ONE place that maps IR node.type → component.
+ *
+ * Props: { nodes: ContentNode[] }. Walks the tree; container nodes (section /
+ * columns / column / tabs) recurse back through ContentRenderer from inside their
+ * own components, so this switch stays the single dispatch point.
+ *
+ * Node → component mapping (all 14 IR node types covered):
+ *   section     → Section
+ *   columns     → Columns
+ *   column      → Column        (normally emitted by Columns; handled here too for safety)
+ *   heading     → Heading
+ *   paragraph   → Prose         (sanitized HTML sink)
+ *   list        → Prose         (ABSORBED: rebuilt into <ul>/<ol> HTML, then sanitized by Prose)
+ *   image       → ContentImage
+ *   button      → Button
+ *   buttongroup → ButtonGroup
+ *   blurb       → Blurb         (rich body renders through Prose internally)
+ *   tabs        → Tabs
+ *   embed       → Embed         (only component allowed to emit iframe/oEmbed markup)
+ *   postlist    → PostList
+ *   html        → Prose         (passthrough, sanitized)
+ */
+import type { ContentNode, ListNode } from '../../lib/content/ir';
+import Section from './Section.astro';
+import Columns from './Columns.astro';
+import Column from './Column.astro';
+import Heading from './Heading.astro';
+import Prose from './Prose.astro';
+import ContentImage from './ContentImage.astro';
+import Button from '../Button.astro';
+import ButtonGroup from './ButtonGroup.astro';
+import Blurb from './Blurb.astro';
+import Tabs from './Tabs.astro';
+import Embed from './Embed.astro';
+import PostList from './PostList.astro';
+
+interface Props {
+  nodes: ContentNode[];
+}
+const { nodes } = Astro.props;
+
+// 'list' is absorbed into Prose: reconstruct minimal list HTML from the node.
+function listToHtml(node: ListNode): string {
+  const tag = node.ordered ? 'ol' : 'ul';
+  const items = node.items.map((item) => `<li>${item}</li>`).join('');
+  return `<${tag}>${items}</${tag}>`;
+}
+---
+{
+  (nodes ?? []).map((node) => {
+    switch (node.type) {
+      case 'section':
+        return <Section node={node} />;
+      case 'columns':
+        return <Columns node={node} />;
+      case 'column':
+        return <Column node={node} />;
+      case 'heading':
+        return <Heading node={node} />;
+      case 'paragraph':
+        return <Prose html={node.html} style={node.style} />;
+      case 'list':
+        return <Prose html={listToHtml(node)} style={node.style} />;
+      case 'image':
+        return <ContentImage node={node} />;
+      case 'button':
+        return <Button node={node} />;
+      case 'buttongroup':
+        return <ButtonGroup node={node} />;
+      case 'blurb':
+        return <Blurb node={node} />;
+      case 'tabs':
+        return <Tabs node={node} />;
+      case 'embed':
+        return <Embed node={node} />;
+      case 'postlist':
+        return <PostList node={node} />;
+      case 'html':
+        return <Prose html={node.html} style={node.style} />;
+      default:
+        // Exhaustiveness guard: the union is fully covered above.
+        return null;
+    }
+  })
+}
