@@ -89,6 +89,26 @@ export const collections = {
 };
 ```
 
+## Design system & brand palette
+
+`presetSite(brand)` turns `brand.colors` into UnoCSS color tokens **and** into
+preflight CSS that bridges WordPress palette-slug classes back to the brand:
+
+- For every `brand.colors` key `slug` it emits `.has-{slug}-color` and
+  `.has-{slug}-background-color` (the latter styled as a callout — padding +
+  radius), plus `.has-text-align-{center,left,right}`. WordPress writes exactly
+  these class names for palette + alignment picks, and the headless build ships
+  none of WP's default stylesheets, so the design system owns them.
+- The **editor end** of the same contract is the `brand-palette.php` mu-plugin
+  (in `wp/mu-plugins/`, template-owned): on `after_setup_theme` it registers
+  `editor-color-palette` + `disable-custom-colors` from a site-supplied
+  `headless_brand_palette` filter (or `HEADLESS_BRAND_PALETTE` constant). Copy it
+  byte-identical into each site's `wp-content/mu-plugins/` alongside a site
+  extension (e.g. `brand-palette-site.php`) that returns the `{slug,name,color}`
+  entries — slugs MUST match `brand.colors` keys. Editors then only ever produce
+  `.has-{slug}-*` classes the preflights cover. Guarded by
+  `tests/preset.test.ts`.
+
 ## Data flow
 
 ```
@@ -124,6 +144,23 @@ This works **both before and after** the backend lands the `engine`+`raw`
 contract: with the fields absent, steps 2–3 reproduce the previous global
 behaviour, so a DIVI site keeps parsing DIVI. `contentEngine` in `SiteConfig`
 is therefore now just the default/fallback hint, not a hard global switch.
+
+### Markdown writer (WordPress side)
+
+The canonical **markdown writer plugin** lives here at
+`astro-core/wp/plugins/markdown-content/` (`markdown-content.php` + bundled
+`Parsedown.php`). It stores the Markdown source of truth in
+`post_content_filtered`, renders an HTML cache into `post_content`, and exposes
+the one canonical writer `markdown_content_apply($post_id, $markdown)` used by
+both the wp-admin editing UI and Phase-2 mass-conversion scripts. That writer
+also hardens each write with three guards (empty-body `_headless_engine=markdown`
+override, `_et_pb_use_builder` flip-off, and `future`-status preservation) —
+see the site's `docs/MARKDOWN_BACKEND.md`.
+
+Unlike `astro-core/wp/mu-plugins/` (the headless API, template-owned), this is a
+**regular plugin**, and `sync_to_sites.sh` does **not** sync site `src/` — so the
+copy in each site's `src/wp-content/plugins/markdown-content/` is **mirrored
+manually** and must be kept byte-identical to this canonical copy.
 
 ### Adapters
 

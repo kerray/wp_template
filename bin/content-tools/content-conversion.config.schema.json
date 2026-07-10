@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://waldorf-brno.cz/schemas/content-conversion.config.json",
+  "title": "Content conversion config",
+  "description": "Site-specific data consumed by wp_template/bin/content-tools/. Every value here is DATA, not prose: chrome signatures, the functional-shortcode allowlist, the palette slug map, and the inventory scope. The conversion tools and the divi-to-gutenberg skill read this so the tools stay site-agnostic.",
+  "type": "object",
+  "required": ["chrome", "functional_shortcode_allowlist", "palette", "inventory"],
+  "additionalProperties": true,
+  "properties": {
+    "site": { "type": "string", "description": "Human label, e.g. waldorf-brno.cz." },
+    "table_prefix": { "type": "string", "description": "WP DB table prefix (informational; the dump uses WP_Query)." },
+    "chrome": {
+      "type": "object",
+      "description": "Signatures for site chrome that is stripped before conversion.",
+      "additionalProperties": false,
+      "properties": {
+        "global_modules": {
+          "type": "array",
+          "items": { "type": ["string", "integer"] },
+          "description": "DIVI global_module ids that are chrome (breadcrumb band, footer). Empty array = treat ANY global_module as chrome."
+        },
+        "disabled_on_values": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "disabled_on attribute values meaning hidden on all devices, e.g. 'on|on|on'."
+        },
+        "breadcrumb_shortcodes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shortcode names that render a breadcrumb (dropped with the global module)."
+        },
+        "footer_text_signatures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Literal text fragments that uniquely identify a footer-nav section to drop (fallback when the footer is not a global module)."
+        },
+        "wave_divider_attrs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "DIVI section attribute names for decorative wave dividers (dropped as cosmetics)."
+        },
+        "content_modules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Module base-names (without et_pb_ prefix) that count as real content. A section holding NONE of these (only spacers/waves) is dropped as chrome."
+        }
+      }
+    },
+    "functional_shortcode_allowlist": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Non-DIVI shortcode names that must survive conversion VERBATIM (in a core/shortcode block for the gutenberg target, or on their own line for markdown). Entries match as a name prefix at a word boundary: 'pdf' matches [pdf-embedder], 'cmplz' matches [cmplz-document]."
+    },
+    "allowed_block_namespaces": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Extra non-core block namespaces that are legitimate passthrough in already-Gutenberg content (e.g. complianz/document). Informational for validation."
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Named brand color slugs -> hex. Callout colors map to the NEAREST slug only when a close shade; everything else is dropped. Content never emits hex."
+    },
+    "inventory": {
+      "type": "object",
+      "required": ["post_types", "statuses"],
+      "additionalProperties": false,
+      "properties": {
+        "post_types": { "type": "array", "items": { "type": "string" }, "description": "Post types to inventory (include custom types)." },
+        "statuses": { "type": "array", "items": { "type": "string" }, "description": "Post statuses to inventory (include custom statuses)." },
+        "curated_slugs": { "type": "array", "items": { "type": "string" }, "description": "Page slugs that are hand-authored/curated -> always classify markdown." },
+        "expected_skips": { "type": "array", "items": { "type": ["integer", "string"] }, "description": "Post ids intentionally left unconverted (empty/awaiting editorial). Verification treats these as expected, not failures." },
+        "layout_modules": { "type": "array", "items": { "type": "string" }, "description": "DIVI module base-names whose presence forces the gutenberg (block) target rather than markdown." }
+      }
+    }
+  }
+}

@@ -32,6 +32,33 @@ interface SiteTheme {
   breakpoints: Record<string, string>;
 }
 
+/**
+ * Preflight CSS bridging WordPress palette-slug classes to the brand tokens.
+ *
+ * For each brand color key `slug` (primary/accent/highlight/gray/…) emit:
+ *   .has-{slug}-color            -> color
+ *   .has-{slug}-background-color -> background-color + callout padding/radius
+ * plus the block-editor text-alignment classes. WordPress produces these exact
+ * class names for palette picks and alignment; the headless build has none of
+ * WP's default stylesheets, so the design system owns these rules. The editor is
+ * locked to the same slugs by the brand-palette.php mu-plugin, keeping both ends
+ * of the palette contract machine-registered.
+ */
+function paletteCss(colors: Record<string, string>): string {
+  const colorRules = Object.entries(colors)
+    .map(
+      ([slug, hex]) => `
+          .has-${slug}-color { color: ${hex}; }
+          .has-${slug}-background-color { background-color: ${hex}; padding: 1.25rem 1.5rem; border-radius: 8px; }`,
+    )
+    .join('');
+  return `${colorRules}
+          .has-text-align-center { text-align: center; }
+          .has-text-align-left { text-align: left; }
+          .has-text-align-right { text-align: right; }
+        `;
+}
+
 // Return the widened `Preset` (== Preset<object>) rather than Preset<SiteTheme>:
 // UnoCSS's `presets: Preset[]` array is invariant in Theme, so a narrow
 // Preset<SiteTheme> is rejected when composed in a site's uno.config.ts.
@@ -89,6 +116,17 @@ export function presetSite(brand: Brand): Preset {
           .prose :where(a) { color: ${accent}; text-decoration: underline; }
           .prose :where(img) { border-radius: 8px; }
         `,
+      },
+      {
+        // Palette-slug bridge: converted Gutenberg content references brand
+        // colors by slug (WordPress emits `.has-{slug}-color` /
+        // `.has-{slug}-background-color` for palette picks — see the
+        // brand-palette.php mu-plugin that registers these same slugs in the
+        // editor). WP core's own palette stylesheet is absent in the headless
+        // build, so we regenerate the rules here for EVERY brand.colors key.
+        // Background classes double as callouts (padding + radius). Kept in a
+        // dedicated preflight so the base-type block above stays untouched.
+        getCSS: () => paletteCss(brand.colors),
       },
     ],
   };

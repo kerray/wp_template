@@ -1,0 +1,39 @@
+{
+  "site": "example.com",
+  "table_prefix": "wp_",
+  "chrome": {
+    "global_modules": ["NNN", "MMM"],
+    "disabled_on_values": ["on|on|on"],
+    "breadcrumb_shortcodes": ["wpseo_breadcrumb", "yoast-breadcrumb"],
+    "footer_text_signatures": ["© 2024 example.com", "UNIQUE-FOOTER-MARKER"],
+    "wave_divider_attrs": ["top_divider_style", "bottom_divider_style"],
+    "content_modules": [
+      "text", "image", "blurb", "accordion", "toggle", "gallery",
+      "button", "code", "cta", "tabs", "video", "audio", "slider"
+    ]
+  },
+  "functional_shortcode_allowlist": [
+    "akce", "kalendar", "pdfjs-viewer", "pdf-embedder",
+    "contact-form-7", "wpforms", "gallery", "rml_file_list", "cmplz"
+  ],
+  "allowed_block_namespaces": ["complianz", "complianztc"],
+  "palette": {
+    "primary": "#2d2864",
+    "accent": "#973528",
+    "highlight": "#f0d118",
+    "gray": "#666666"
+  },
+  "inventory": {
+    "post_types": ["page", "post"],
+    "statuses": ["publish", "draft", "private", "pending", "future"],
+    "curated_slugs": ["about", "contact"],
+    "expected_skips": [],
+    "layout_modules": [
+      "tabs", "toggle", "accordion", "slider", "gallery", "blurb",
+      "counter", "number_counter", "circle_counter", "pricing_tables",
+      "portfolio", "filterable_portfolio", "shop", "testimonial",
+      "team_member", "video_slider", "post_slider", "fullwidth_slider",
+      "map", "contact_form", "signup"
+    ]
+  }
+}
