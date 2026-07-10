@@ -139,6 +139,21 @@ the per-site app is `astro/` (created by `just astro-init`, sync-protected).
 See **[Astro Headless WordPress](docs/ASTRO_HEADLESS_WORDPRESS.md)** for the full
 architecture, and the `divi-to-astro-content` skill for content migration.
 
+### Content normalization (DIVI → Markdown / core Gutenberg)
+
+To normalize a whole page-builder site's content into two canonical DB formats
+(Markdown + core Gutenberg) served headlessly, follow
+**[Content Normalization Playbook](docs/CONTENT_NORMALIZATION_PLAYBOOK.md)**. Tooling:
+
+| Path | Purpose |
+|------|---------|
+| `bin/content-tools/` | Python conversion toolkit — `divi_extract.py`, `html2md.py`, `divi2blocks.py`, `content_inventory.py`, `validate-blocks.php`, `ct_common.py` (all `--help`). See its `README.md`. |
+| `bin/content-tools/content-conversion.config.{schema,example}.json` | Per-site config (chrome signatures, palette, shortcode allowlist) — data, not code |
+| `bin/visual-review.mjs` | Site-agnostic Playwright screenshot crawl (`--base`, `--compare`) for visual/brand parity |
+| `astro-core/wp/plugins/markdown-content/` | Canonical Markdown writer plugin (`markdown_content_apply()`, Parsedown) |
+| `astro-core/wp/mu-plugins/headless-api/` | `headless/v1` API — emits `engine` + token-gated `raw` per item |
+| `astro-core/wp/mu-plugins/brand-palette.php` | Registers brand editor-color-palette slugs (via `headless_brand_palette` filter) |
+
 ## Documentation
 
 Detailed guides are in `docs/`:
@@ -150,6 +165,7 @@ Detailed guides are in `docs/`:
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues & solutions
 - **[MCP Installation](docs/wordpress-mcp-installation.md)** - WordPress MCP plugin
 - **[Astro Headless WordPress](docs/ASTRO_HEADLESS_WORDPRESS.md)** - Static Astro frontend layer
+- **[Content Normalization Playbook](docs/CONTENT_NORMALIZATION_PLAYBOOK.md)** - DIVI → Markdown/Gutenberg process + `bin/content-tools/`
 
 ### Workflows
 

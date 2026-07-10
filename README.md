@@ -529,6 +529,21 @@ WP_PORT=8081 just up
 4. **Create backup workflows** before allowing AI to make changes
 5. **Set up staging environments** for testing AI-generated content
 
+## 🧩 Headless Astro frontend & content normalization
+
+Beyond the classic PHP stack, this template ships a layer for running a **static
+Astro 7 frontend off headless WordPress**, plus tooling to **normalize a
+page-builder site's content** (DIVI etc.) into two canonical DB formats —
+**Markdown** and **core Gutenberg** — served per-post via a `headless/v1`
+`engine`/`raw` API.
+
+- **[Content Normalization Playbook](docs/CONTENT_NORMALIZATION_PLAYBOOK.md)** — the full process (phases, QA gates, lessons)
+- `bin/content-tools/` — Python conversion toolkit (`divi_extract.py`, `html2md.py`, `divi2blocks.py`, `content_inventory.py`, `validate-blocks.php`) + per-site `content-conversion.config.{schema,example}.json` (see its `README.md`)
+- `bin/visual-review.mjs` — Playwright screenshot crawl for visual/brand parity (`--base`, `--compare`)
+- `astro-core/wp/plugins/markdown-content/` — canonical Markdown writer plugin (`markdown_content_apply()`)
+- `astro-core/wp/mu-plugins/` — `headless-api/` (`engine`/`raw` fields) + `brand-palette.php` (brand editor-color-palette slugs)
+- **[Astro Headless WordPress](docs/ASTRO_HEADLESS_WORDPRESS.md)** — frontend architecture & decisions
+
 ## 📚 Additional Resources
 
 - **WordPress MCP Installation Guide**: `docs/wordpress-mcp-installation.md`

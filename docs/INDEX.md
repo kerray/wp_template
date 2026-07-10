@@ -12,6 +12,14 @@
 | [MCP Installation](wordpress-mcp-installation.md) | WordPress MCP plugin setup |
 | **[Production Security](PRODUCTION_SECURITY.md)** | **Security hardening for production deployment** |
 
+## Headless Astro & Content Normalization
+
+| Document | Description |
+|----------|-------------|
+| [Content Normalization Playbook](CONTENT_NORMALIZATION_PLAYBOOK.md) | DIVI → Markdown/core-Gutenberg process + `bin/content-tools/` + `bin/visual-review.mjs` |
+| [Astro Headless WordPress](ASTRO_HEADLESS_WORDPRESS.md) | Static Astro 7 frontend layer (`astro-core/`) architecture |
+| [Template Sync](TEMPLATE_SYNC.md) | Syncing template-owned layers into consuming sites |
+
 ## Step-by-Step Workflows
 
 | Document | Description |

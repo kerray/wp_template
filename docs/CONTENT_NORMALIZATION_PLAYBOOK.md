@@ -120,7 +120,7 @@ primary #2d2864 / accent #973528 / highlight #f0d118 / gray #666666, types
 page/post/akce). The tools are now site-agnostic; only the config changes per
 site.
 
-### 3. Writer hardening (bugs found post-hoc) — DONE
+### 3. Writer hardening (bugs found post-hoc) — ✅ DONE
 - ✅ `markdown_content_apply()` now itself: sets `_headless_engine=markdown`
   when the markdown body is empty (and removes that override again once a
   non-empty body is applied and natural detection works), flips
@@ -172,7 +172,7 @@ We verified text and structure to zero-loss, but never pixels — hence
   text instead of rounded pills; (5) iCal control shows a tofu/missing glyph
   instead of a styled button. These feed the upcoming (separate) design pass.
 
-### 5. Palette slugs end-to-end — DONE
+### 5. Palette slugs end-to-end — ✅ DONE
 Slugs (`primary`/`accent`/`highlight`/`gray`) are now machine-registered on
 both ends:
 - **WP editor palette**: generic `brand-palette.php` mu-plugin (canonical in
