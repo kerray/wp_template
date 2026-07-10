@@ -119,7 +119,13 @@ export interface WpRawPage {
   id: number;
   slug: string;
   title: string;
-  /** Unprocessed post_content (DIVI shortcodes / Gutenberg block markup). */
+  /**
+   * Which builder authored this item's body: 'markdown' | 'gutenberg' | 'divi' |
+   * 'html'. Optional — absent until the backend lands the engine contract, in
+   * which case the loader sniffs `raw` and falls back to the site default hint.
+   */
+  engine?: string;
+  /** Unprocessed post_content (Markdown / DIVI shortcodes / Gutenberg / HTML). */
   raw: string;
   /** Server-rendered HTML. */
   rendered: string;
@@ -316,6 +322,7 @@ export async function fetchRawContent(opts: WpClientOptions): Promise<WpRawPage[
       id: item.id,
       slug: item.slug,
       title: typeof item.title === 'string' ? item.title : (item.title?.rendered ?? ''),
+      ...(typeof item.engine === 'string' ? { engine: item.engine } : {}),
       raw: item.raw ?? item.content?.raw ?? '',
       rendered: item.rendered ?? item.content?.rendered ?? '',
       cleanContent: item.cleanContent ?? '',

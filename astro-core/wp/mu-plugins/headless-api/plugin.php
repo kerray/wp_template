@@ -41,6 +41,7 @@ if (!defined('HEADLESS_API_DIR')) {
 }
 
 require_once HEADLESS_API_DIR . '/includes/auth.php';
+require_once HEADLESS_API_DIR . '/includes/engine.php';
 require_once HEADLESS_API_DIR . '/includes/clean-content.php';
 require_once HEADLESS_API_DIR . '/includes/pages.php';
 require_once HEADLESS_API_DIR . '/includes/posts.php';

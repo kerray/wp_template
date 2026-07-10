@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@wordpress/block-serialization-default-parser": "^5.50.0",
+    "marked": "^18.0.6",
     "ultrahtml": "^1.6.0",
     "zod": "^4.4.3"
   },

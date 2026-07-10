@@ -22,7 +22,7 @@ import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'zod';
 import type { ContentAdapter, ContentNode } from '../content/ir';
 import { htmlNode } from '../content/ir';
-import { fetchRawContent, fetchPages, type WpClientOptions } from '../wordpress';
+import { fetchRawContent, fetchPages, type WpClientOptions, type WpRawPage } from '../wordpress';
 import type { ResolvedSiteConfig } from '../config';
 
 /** The config subset the loader actually needs. */
@@ -34,8 +34,18 @@ export interface LoaderConfig {
 export interface WordpressLoaderOptions {
   /** Resolved site config (or at least its `wp` block). */
   config: LoaderConfig;
-  /** Injected content adapter (gutenbergAdapter | diviAdapter). */
-  adapter: ContentAdapter;
+  /**
+   * Legacy single content adapter, applied to every item. Used only when
+   * `resolveAdapter` is not provided (kept for backward compatibility).
+   */
+  adapter?: ContentAdapter;
+  /**
+   * Per-item adapter resolver — takes precedence over `adapter`. The loader
+   * calls this for each raw page so the engine can be decided PER ITEM
+   * (API `engine` field → source sniffing → site default hint). Injected so the
+   * loader never imports the adapters package directly.
+   */
+  resolveAdapter?: (page: WpRawPage) => ContentAdapter;
   /** Override the collection loader name (defaults to 'wordpress-pages'). */
   name?: string;
 }
@@ -68,7 +78,11 @@ function clientOptions(config: LoaderConfig, warn: (m: string) => void): WpClien
 }
 
 export function wordpressLoader(opts: WordpressLoaderOptions): Loader {
-  const { config, adapter } = opts;
+  const { config } = opts;
+  // Per-item resolver wins; else the legacy single adapter; else HTML fallback.
+  const pickAdapter: (page: WpRawPage) => ContentAdapter =
+    opts.resolveAdapter ??
+    (() => opts.adapter ?? ((raw) => [htmlNode(raw ?? '')]));
   return {
     name: opts.name ?? 'wordpress-pages',
     schema: wpEntrySchema,
@@ -84,6 +98,7 @@ export function wordpressLoader(opts: WordpressLoaderOptions): Loader {
         for (const page of rawPages) {
           let body: ContentNode[];
           try {
+            const adapter = pickAdapter(page);
             body = adapter(page.raw, {
               warn,
               baseUrl,
@@ -152,7 +167,12 @@ export function wordpressLoader(opts: WordpressLoaderOptions): Loader {
 }
 
 /**
- * Convenience factory that picks the adapter by `config.contentEngine`.
+ * Convenience factory with PER-ITEM engine resolution.
+ *
+ * `config.contentEngine` is now only the default/fallback hint: for each item
+ * the resolver honours the API `engine` field first, then sniffs the raw source
+ * (`<!-- wp:` → gutenberg, `[et_pb_` → divi), and only then falls back to the
+ * site hint. Works identically before and after the backend lands the contract.
  *
  * Returns a `Loader` *synchronously* (Astro's `defineCollection({ loader })`
  * expects a Loader, not a Promise) — the adapters module is imported lazily
@@ -160,20 +180,20 @@ export function wordpressLoader(opts: WordpressLoaderOptions): Loader {
  * (potentially large) parser deps are only pulled in at build time.
  */
 export function wordpressLoaderFor(
-  config: LoaderConfig & { contentEngine: ResolvedSiteConfig['contentEngine'] },
+  config: LoaderConfig & { contentEngine?: ResolvedSiteConfig['contentEngine'] },
   name?: string,
 ): Loader {
   return {
     name: name ?? 'wordpress-pages',
     schema: wpEntrySchema,
     async load(ctx: LoaderContext): Promise<void> {
-      const mod = (await import('../content/adapters/index')) as {
-        gutenbergAdapter: ContentAdapter;
-        diviAdapter: ContentAdapter;
+      const mod = await import('../content/adapters/index');
+      const fallback = mod.asContentEngine(config.contentEngine);
+      const resolveAdapter = (page: WpRawPage): ContentAdapter => {
+        const engine = mod.resolveEngine(page.engine, page.raw, fallback);
+        return mod.getAdapter(engine);
       };
-      const adapter =
-        config.contentEngine === 'divi' ? mod.diviAdapter : mod.gutenbergAdapter;
-      return wordpressLoader({ config, adapter, name }).load(ctx);
+      return wordpressLoader({ config, resolveAdapter, name }).load(ctx);
     },
   };
 }

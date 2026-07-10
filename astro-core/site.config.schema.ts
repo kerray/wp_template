@@ -41,8 +41,13 @@ export const siteConfigSchema = z.object({
     coreFallback: z.boolean().default(true),
   }),
 
-  /** Which builder the WP content was authored with — picks the adapter. */
-  contentEngine: z.enum(['gutenberg', 'divi']),
+  /**
+   * Default/fallback content engine hint. Engine selection is now PER ITEM: the
+   * loader honours each page/post's API `engine` field, then sniffs its source,
+   * and only falls back to this value when neither is decisive. No longer a hard
+   * global. Optional — defaults to 'html' (safe passthrough).
+   */
+  contentEngine: z.enum(['markdown', 'gutenberg', 'divi', 'html']).default('html'),
 
   /** Locale set; single-locale sites can omit this. */
   locales: z

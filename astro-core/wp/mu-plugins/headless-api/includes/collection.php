@@ -21,10 +21,11 @@ if (!defined('ABSPATH')) {
  *
  * Response: array of {
  *   id, slug, title, excerpt, date, modified, link, featuredImage,
- *   cleanContent, status,
+ *   cleanContent, engine, status,
  *   meta:  { <public meta keys> },
  *   terms: { <taxonomy>: [{id, name, slug}, …] }
- *   [, raw, rendered]   // only when ?raw=1 with valid auth
+ *   [, raw, rendered]   // only when ?raw=1 with valid auth; raw is the
+ *                       // canonical source for the detected engine
  * }
  *
  * @param WP_REST_Request $request
@@ -71,13 +72,16 @@ function headless_api_get_collection($request) {
             'link'          => get_permalink($post->ID),
             'featuredImage' => headless_api_featured_image($post->ID),
             'cleanContent'  => headless_api_clean_content($post->post_content, $post),
+            'engine'        => headless_api_detect_engine($post),
             'meta'          => headless_api_public_meta($post->ID),
             'terms'         => headless_api_post_terms($post->ID, $taxonomies),
         );
 
         if ($want_raw) {
-            // Edit-level data — token-gated. See auth.php.
-            $item['raw']      = $post->post_content;
+            // Edit-level data — token-gated. See auth.php. `raw` is the canonical
+            // source per the detected engine (Markdown text for markdown posts,
+            // post_content otherwise); `rendered` is the filtered HTML body.
+            $item['raw']      = headless_api_raw_source($post, $item['engine']);
             $item['rendered'] = apply_filters('the_content', $post->post_content);
         }
 

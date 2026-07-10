@@ -17,9 +17,10 @@ if (!defined('ABSPATH')) {
  * GET /wp-json/headless/v1/pages
  *
  * Response: array of {
- *   id, slug, title, excerpt, cleanContent, menuOrder, parent,
+ *   id, slug, title, excerpt, cleanContent, engine, menuOrder, parent,
  *   date, modified, link, featuredImage
- *   [, raw, rendered]   // only when ?raw=1 with valid auth
+ *   [, raw, rendered]   // only when ?raw=1 with valid auth; raw is the
+ *                       // canonical source for the detected engine
  * }
  *
  * @param WP_REST_Request $request
@@ -48,6 +49,7 @@ function headless_api_get_pages($request) {
                                    $page->post_excerpt !== '' ? $page->post_excerpt : $page->post_content
                                ),
             'cleanContent'  => headless_api_clean_content($page->post_content, $page),
+            'engine'        => headless_api_detect_engine($page),
             'menuOrder'     => (int) $page->menu_order,
             'parent'        => (int) $page->post_parent,
             'date'          => get_post_time('c', true, $page->ID),
@@ -57,8 +59,10 @@ function headless_api_get_pages($request) {
         );
 
         if ($want_raw) {
-            // Edit-level data — token-gated. See auth.php.
-            $item['raw']      = $page->post_content;
+            // Edit-level data — token-gated. See auth.php. `raw` is the canonical
+            // source per the detected engine (Markdown text for markdown posts,
+            // post_content otherwise); `rendered` is the filtered HTML body.
+            $item['raw']      = headless_api_raw_source($page, $item['engine']);
             $item['rendered'] = apply_filters('the_content', $page->post_content);
         }
 
