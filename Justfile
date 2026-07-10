@@ -110,7 +110,7 @@ wp *args:
         echo ""; \
         echo "For more WP-CLI commands, visit: https://developer.wordpress.org/cli/commands/"; \
     else \
-        if ! docker compose ps | grep -q "wordpress.*Up"; then \
+        if ! docker compose ps --status running --services 2>/dev/null | grep -qx wordpress; then \
             echo "Warning: WordPress container does not appear to be running"; \
             echo "Starting Docker environment..."; \
             docker compose up -d; \
@@ -118,7 +118,7 @@ wp *args:
             sleep 5; \
         fi; \
         echo "Running: wp {{args}}"; \
-        docker compose exec wordpress wp {{args}} --allow-root; \
+        docker compose exec -T wordpress wp {{args}} --allow-root; \
     fi
 
 # Install and activate a WordPress plugin
@@ -184,7 +184,7 @@ urls-replace old new:
 # Export database to backups directory
 db-export:
     @mkdir -p backups
-    @timestamp=$(date +%Y-%m-%d-%H%M%S); backup_file="backups/backup-$${timestamp}.sql"; echo "Exporting database to $${backup_file}..."; docker compose exec db mysqldump -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} > "$${backup_file}"; echo "Database exported successfully!"
+    @timestamp=$(date +%Y-%m-%d-%H%M%S); backup_file="backups/backup-${timestamp}.sql"; echo "Exporting database to ${backup_file}..."; docker compose exec db mysqldump -u${MYSQL_USER:-wordpress} -p${MYSQL_PASSWORD:-wordpress} ${MYSQL_DATABASE:-wordpress} > "${backup_file}"; echo "Database exported successfully!"
 
 # Import database from backup file (usage: just db-import filename.sql)
 db-import file:
@@ -319,12 +319,12 @@ setup-logs:
 
 # Create uploads backup
 uploads-backup:
-    @if [ ! -d "uploads" ] || [ -z "$$(ls -A uploads 2>/dev/null)" ]; then \
+    @if [ ! -d "uploads" ] || [ -z "$(ls -A uploads 2>/dev/null)" ]; then \
         echo "No uploads directory or uploads directory is empty"; \
         exit 0; \
     fi
     @mkdir -p backups
-    @timestamp=$$(date +%Y-%m-%d-%H%M%S); backup_file="backups/uploads-$${timestamp}.tar.gz"; echo "Creating uploads backup: $${backup_file}..."; tar -czf "$${backup_file}" -C uploads .; echo "Uploads backup created successfully!"
+    @timestamp=$(date +%Y-%m-%d-%H%M%S); backup_file="backups/uploads-${timestamp}.tar.gz"; echo "Creating uploads backup: ${backup_file}..."; tar -czf "${backup_file}" -C uploads .; echo "Uploads backup created successfully!"
 
 # Restore uploads from backup
 uploads-restore file:
@@ -551,7 +551,7 @@ mcp-inspector:
     @read -p "Enter your JWT token: " jwt_token; \
     npx @modelcontextprotocol/inspector \
       -e WP_API_URL=http://localhost:${WP_PORT:-8080}/ \
-      -e JWT_TOKEN="$$jwt_token" \
+      -e JWT_TOKEN="$jwt_token" \
       npx @automattic/mcp-wordpress-remote@latest
 
 # Backup WordPress MCP settings
@@ -559,8 +559,8 @@ mcp-backup-settings:
     @mkdir -p backups
     @timestamp=$(date +%Y-%m-%d-%H%M%S); \
     echo "Backing up WordPress MCP settings..."; \
-    just wp "option get wordpress_mcp_settings" > "backups/mcp-settings-$${timestamp}.json" 2>/dev/null && \
-    echo "MCP settings backed up to backups/mcp-settings-$${timestamp}.json" || \
+    just wp "option get wordpress_mcp_settings" > "backups/mcp-settings-${timestamp}.json" 2>/dev/null && \
+    echo "MCP settings backed up to backups/mcp-settings-${timestamp}.json" || \
     echo "No MCP settings found to backup"
 
 # Restore WordPress MCP settings
@@ -568,7 +568,7 @@ mcp-restore-settings file:
     @echo "Restoring WordPress MCP settings from backups/{{file}}..."
     @if [ -f "backups/{{file}}" ]; then \
         settings_content=$(cat "backups/{{file}}"); \
-        just wp "option update wordpress_mcp_settings '$${settings_content}'" && \
+        just wp "option update wordpress_mcp_settings '${settings_content}'" && \
         echo "MCP settings restored successfully!"; \
     else \
         echo "Backup file not found: backups/{{file}}"; \
@@ -648,10 +648,10 @@ security-setup-production:
         echo "WARNING: .env file already exists!"; \
         echo ""; \
         read -p "Backup existing .env and create production template? (y/N): " confirm; \
-        if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-            timestamp=$$(date +%Y%m%d-%H%M%S); \
-            cp .env ".env.backup-$$timestamp"; \
-            echo "Backed up existing .env to .env.backup-$$timestamp"; \
+        if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then \
+            timestamp=$(date +%Y%m%d-%H%M%S); \
+            cp .env ".env.backup-$timestamp"; \
+            echo "Backed up existing .env to .env.backup-$timestamp"; \
             cp .env.production .env; \
             echo "Created new .env from production template"; \
             echo ""; \
@@ -680,44 +680,44 @@ security-verify:
     \
     if grep -q "MYSQL_ROOT_PASSWORD=rootpassword" .env 2>/dev/null; then \
         echo "[CRITICAL] MYSQL_ROOT_PASSWORD is using default value!"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     elif grep -q "MYSQL_ROOT_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
         echo "[CRITICAL] MYSQL_ROOT_PASSWORD has not been changed!"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     else \
         echo "[OK] MYSQL_ROOT_PASSWORD appears to be customized"; \
     fi; \
     \
     if grep -q "MYSQL_PASSWORD=wordpress" .env 2>/dev/null; then \
         echo "[CRITICAL] MYSQL_PASSWORD is using default value!"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     elif grep -q "MYSQL_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
         echo "[CRITICAL] MYSQL_PASSWORD has not been changed!"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     else \
         echo "[OK] MYSQL_PASSWORD appears to be customized"; \
     fi; \
     \
     if grep -q "WP_DEBUG=true" .env 2>/dev/null; then \
         echo "[WARNING] WP_DEBUG is enabled (should be false in production)"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     else \
         echo "[OK] WP_DEBUG is disabled or not set to true"; \
     fi; \
     \
     if grep -q "SFTP_PASSWORD=wordpress" .env 2>/dev/null; then \
         echo "[WARNING] SFTP_PASSWORD is using default value"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     elif grep -q "SFTP_PASSWORD=CHANGE_ME" .env 2>/dev/null; then \
         echo "[WARNING] SFTP_PASSWORD has not been changed"; \
-        issues=$$((issues + 1)); \
+        issues=$((issues + 1)); \
     else \
         echo "[OK] SFTP_PASSWORD appears to be customized or disabled"; \
     fi; \
     \
     echo ""; \
-    if [ $$issues -gt 0 ]; then \
-        echo "Found $$issues security issue(s). Please address before production deployment."; \
+    if [ $issues -gt 0 ]; then \
+        echo "Found $issues security issue(s). Please address before production deployment."; \
         echo "See: docs/PRODUCTION_SECURITY.md"; \
     else \
         echo "Basic security checks passed!"; \
@@ -738,24 +738,24 @@ security-test-blocked:
     @echo "Testing Blocked Paths..."
     @echo ""
     @echo "Testing wp-config.php:"
-    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-config.php 2>/dev/null); \
-    if [ "$$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $$status (expected 403)"; fi
+    @status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-config.php 2>/dev/null); \
+    if [ "$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $status (expected 403)"; fi
     @echo ""
     @echo "Testing .git/config:"
-    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/.git/config 2>/dev/null); \
-    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+    @status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/.git/config 2>/dev/null); \
+    if [ "$status" = "403" ] || [ "$status" = "404" ]; then echo "  [OK] Blocked ($status)"; else echo "  [FAIL] Status: $status (expected 403/404)"; fi
     @echo ""
     @echo "Testing xmlrpc.php:"
-    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/xmlrpc.php 2>/dev/null); \
-    if [ "$$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $$status (expected 403)"; fi
+    @status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/xmlrpc.php 2>/dev/null); \
+    if [ "$status" = "403" ]; then echo "  [OK] Blocked (403)"; else echo "  [FAIL] Status: $status (expected 403)"; fi
     @echo ""
     @echo "Testing debug.log:"
-    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/debug.log 2>/dev/null); \
-    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+    @status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/debug.log 2>/dev/null); \
+    if [ "$status" = "403" ] || [ "$status" = "404" ]; then echo "  [OK] Blocked ($status)"; else echo "  [FAIL] Status: $status (expected 403/404)"; fi
     @echo ""
     @echo "Testing PHP in uploads:"
-    @status=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/uploads/test.php 2>/dev/null); \
-    if [ "$$status" = "403" ] || [ "$$status" = "404" ]; then echo "  [OK] Blocked ($$status)"; else echo "  [FAIL] Status: $$status (expected 403/404)"; fi
+    @status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${WP_PORT:-8080}/wp-content/uploads/test.php 2>/dev/null); \
+    if [ "$status" = "403" ] || [ "$status" = "404" ]; then echo "  [OK] Blocked ($status)"; else echo "  [FAIL] Status: $status (expected 403/404)"; fi
 
 # Full security audit
 security-audit:
@@ -972,7 +972,7 @@ snapshot-list backup:
     @unzip -l backups/{{backup}} | head -50
     @echo ""
     @echo "Database tables:"
-    @unzip -l backups/{{backup}} | grep "sql/.*\.sql$" | awk '{print "  - " $$4}' | sort
+    @unzip -l backups/{{backup}} | grep "sql/.*\.sql$" | awk '{print "  - " $4}' | sort
     @echo ""
     @echo "Total files:"
     @unzip -l backups/{{backup}} | tail -1
@@ -1014,13 +1014,13 @@ snapshot-restore-files backup:
     @unzip -o backups/{{backup}} www/* -d backups/snapshot_temp/ 2>/dev/null || true
     @if [ -d "backups/snapshot_temp/www" ]; then \
         echo "Backing up current files..."; \
-        timestamp=$$(date +%Y%m%d_%H%M%S); \
-        mkdir -p backups/files_backup_$$timestamp; \
-        cp -r src/* backups/files_backup_$$timestamp/ 2>/dev/null || true; \
+        timestamp=$(date +%Y%m%d_%H%M%S); \
+        mkdir -p backups/files_backup_$timestamp; \
+        cp -r src/* backups/files_backup_$timestamp/ 2>/dev/null || true; \
         echo "Restoring WordPress files..."; \
         cp -r backups/snapshot_temp/www/* src/ 2>/dev/null || true; \
         echo "Files restored successfully!"; \
-        echo "Previous files backed up to: backups/files_backup_$$timestamp/"; \
+        echo "Previous files backed up to: backups/files_backup_$timestamp/"; \
         rm -rf backups/snapshot_temp; \
     else \
         echo "Error: No www files found in backup!"; \
@@ -1172,7 +1172,7 @@ divi-status:
 # List content by status (usage: just divi-list pending)
 divi-list status:
     @echo "=== Content with status: {{status}} ==="
-    @find content -name "metadata.json" -exec sh -c 'if grep -q "\"status\": \"{{status}}\"" "$$1"; then jq -r "[.post_type, .slug, .complexity] | @tsv" "$$1"; fi' _ {} \;
+    @find content -name "metadata.json" -exec sh -c 'if grep -q "\"status\": \"{{status}}\"" "$1"; then jq -r "[.post_type, .slug, .complexity] | @tsv" "$1"; fi' _ {} \;
 
 # Show DIVI migration help
 divi-help:
