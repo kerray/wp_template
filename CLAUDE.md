@@ -118,6 +118,8 @@ Claude automatically uses these skills when relevant:
 | `wordpress-testing` | Site testing, Playwright, error detection |
 | `backup-restore` | Database backups, UpdraftPlus restoration |
 | `divi-to-astro-content` | Migrate DIVI page bodies into the Astro frontend (curated Markdown / feed) |
+| `design-parity` | Astro visual/brand parity vs the production reference — checklist + `visual-review` crawl, fixes map to `presetSite` tokens |
+| `security/security-skill-scanner` | Scan installed Claude Skills for malicious patterns; also runs automatically on skill writes via a PostToolUse hook (`.claude/hooks/scan-skill-on-write.sh`) |
 
 ## Astro static frontend
 
@@ -148,6 +150,8 @@ To normalize a whole page-builder site's content into two canonical DB formats
 | Path | Purpose |
 |------|---------|
 | `bin/content-tools/` | Python conversion toolkit — `divi_extract.py`, `html2md.py`, `divi2blocks.py`, `content_inventory.py`, `validate-blocks.php`, `ct_common.py` (all `--help`). See its `README.md`. |
+| `bin/content-tools/verify-content.php` | Post-apply full-corpus sweep (engine vs target, residue, block validity) — `just verify-content` |
+| `bin/content-tools/content-hallucination-check.php` | Corpus-wide no-invented-words check vs pre-conversion snapshot DB — `just verify-hallucinations` |
 | `bin/content-tools/content-conversion.config.{schema,example}.json` | Per-site config (chrome signatures, palette, shortcode allowlist) — data, not code |
 | `bin/visual-review.mjs` | Site-agnostic Playwright screenshot crawl (`--base`, `--compare`) for visual/brand parity |
 | `astro-core/wp/plugins/markdown-content/` | Canonical Markdown writer plugin (`markdown_content_apply()`, Parsedown) |

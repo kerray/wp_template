@@ -48,9 +48,9 @@ body  │ (strip chrome│ HTML│(GFM +    │  (post_       │ (core/* blocks
 ```
 
 `inventory → extract → md / blocks → apply → verify`. The **apply** step (DB
-writer) and **verify** step are site-repo concerns (`markdown_content_apply()`,
-`bin/verify-content.php`); this toolkit produces the normalized content they
-write and check.
+writer) is a site-repo concern (`markdown_content_apply()`); the **verify**
+step ships here (`verify-content.php`, `content-hallucination-check.php`,
+run via `just verify-content` / `just verify-hallucinations`).
 
 ---
 
@@ -63,6 +63,8 @@ write and check.
 | `html2md.py` | HTML → GitHub-Flavored Markdown, with the batch agents' fixes: emphasis pairing across `<br>`/fragmented `<strong>`, whitespace moved out of `**`/`*`, ordinal escaping for date lines, empty-alt images preserved, tables, blockquotes, `<h1>`→`<h2>`. |
 | `divi2blocks.py` | DIVI shortcode tree → normalized **core Gutenberg** block markup per the `divi-to-gutenberg` skill's normalization rules (structure kept, cosmetics dropped, palette-slug mapping for brand colors only, functional shortcodes verbatim, unknown modules → TODO marker + non-zero exit). |
 | `validate-blocks.php` | Canonical `parse_blocks()` gate: 0 `BAD_freeform_with_content` and only allowed `core/*` (+ passthrough) blocks, else exit 1. Run via `wp eval-file` in the WP container. |
+| `verify-content.php` | Full-corpus post-apply sweep: engine vs manifest target, DIVI residue (canonical + DB-wide), `parse_blocks` validity. Reads `inventory.expected_skips`/`post_types` from the config; exit 1 on any failure. Run via `just verify-content`. |
+| `content-hallucination-check.php` | Corpus-wide hallucination check vs a pre-conversion snapshot DB (`verify_pre`): no converted item may contain words absent from its original. Run via `just verify-hallucinations` (see script header for snapshot setup). |
 | `ct_common.py` | Shared library (config loader, tolerant DIVI shortcode-tree parser, chrome detection, shortcode-corruption repair, functional-shortcode allowlist, palette hex→slug). Imported by the tools; not a CLI. |
 
 Every `.py` tool supports `--help`. All are Python 3 stdlib only (no pip

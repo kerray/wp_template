@@ -114,9 +114,12 @@ sync_site() {
     create_site_config "$site_dir"
     
     # Copy .claude directory if it exists in template
+    # NOTE: no --delete — sites carry site-specific skills (e.g. waldorf's
+    # calendar-upgrade) and settings.local.json that a template sync must
+    # never remove. Template skills update in place; removals are manual.
     if [ -d "$TEMPLATE_DIR/.claude" ]; then
         log_info "Syncing .claude directory to $site_name"
-        rsync -av --delete "$TEMPLATE_DIR/.claude/" "$site_dir/.claude/" 2>/dev/null || log_warning "Failed to sync .claude directory"
+        rsync -av "$TEMPLATE_DIR/.claude/" "$site_dir/.claude/" 2>/dev/null || log_warning "Failed to sync .claude directory"
     fi
     
     # Sync template files

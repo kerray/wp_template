@@ -179,6 +179,78 @@ urls-replace old new:
     just wp search-replace "{{old}}" "{{new}}"
     @echo "URL replacement completed!"
 
+# === Content Verification (headless normalization) ===
+
+# Full-corpus conversion sweep: engine vs manifest target, DIVI residue, block validity
+verify-content manifest="conversion-manifest.json" config="content-conversion.config.json":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker compose cp "{{manifest}}" wordpress:/tmp/conversion-manifest.json
+    if [ -f "{{config}}" ]; then
+        docker compose cp "{{config}}" wordpress:/tmp/content-conversion.config.json
+    else
+        echo "[verify-content] note: no config at {{config}} — using defaults (no expected skips, page+post types)"
+        docker compose exec -T wordpress rm -f /tmp/content-conversion.config.json
+    fi
+    docker compose cp bin/content-tools/verify-content.php wordpress:/tmp/verify-content.php
+    docker compose exec -T wordpress wp eval-file /tmp/verify-content.php /tmp/conversion-manifest.json /tmp/content-conversion.config.json --allow-root
+
+# Corpus-wide hallucination check vs a pre-conversion snapshot DB (see script header for snapshot setup)
+verify-hallucinations manifest="conversion-manifest.json" config="content-conversion.config.json" pre_db="verify_pre":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker compose cp "{{manifest}}" wordpress:/tmp/conversion-manifest.json
+    if [ -f "{{config}}" ]; then
+        docker compose cp "{{config}}" wordpress:/tmp/content-conversion.config.json
+    else
+        docker compose exec -T wordpress rm -f /tmp/content-conversion.config.json
+    fi
+    docker compose cp bin/content-tools/content-hallucination-check.php wordpress:/tmp/content-hallucination-check.php
+    docker compose exec -T wordpress wp eval-file /tmp/content-hallucination-check.php /tmp/conversion-manifest.json /tmp/content-conversion.config.json "{{pre_db}}" --allow-root
+
+# Refuse deployment while production still renders page-builder markup.
+# Usage: `just deploy-guard https://example.com`, or set PROD_URL in .env so
+# push recipes can depend on it bare: `my-push: deploy-guard`
+# (with an explicit url use `my-push url: (deploy-guard url)`)
+deploy-guard url=env_var_or_default("PROD_URL", "") markers="et_pb_|/themes/Divi/":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    URL="{{url}}"
+    MARKERS="{{markers}}"
+    if [ -z "${URL}" ]; then
+        echo "[deploy-guard] ERROR: no url argument and PROD_URL is not set in .env"
+        exit 1
+    fi
+    echo "[deploy-guard] Checking production theme at ${URL} ..."
+    HTML="$(curl -fsSL --max-time 30 "${URL}" || true)"
+    if [ -z "${HTML}" ]; then
+        echo ""
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "[deploy-guard] ABORT: could not fetch ${URL} (empty/failed response)."
+        echo "  Refusing to deploy: cannot confirm production is off the old builder theme."
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        exit 1
+    fi
+    # here-string, not a pipe: `grep -q` + `set -o pipefail` would otherwise
+    # SIGPIPE the upstream `echo` and misreport a real match as "no match".
+    if grep -Eq "${MARKERS}" <<< "${HTML}"; then
+        echo ""
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "[deploy-guard] ABORT: production ${URL} STILL RENDERS BUILDER MARKUP."
+        echo "  Found builder markers matching: ${MARKERS}"
+        echo ""
+        echo "  The normalized headless database has had builder markup stripped."
+        echo "  Pushing it onto the live builder theme would blank out heroes,"
+        echo "  rows and layout across the site."
+        echo ""
+        echo "  The DB must go live TOGETHER with the frontend switch. Do NOT"
+        echo "  push DB/content to production until this guard passes (i.e."
+        echo "  production no longer serves builder markup)."
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        exit 1
+    fi
+    echo "[deploy-guard] OK: no builder markers found at ${URL} -- safe to proceed."
+
 # === Database Operations ===
 
 # Export database to backups directory

@@ -539,6 +539,8 @@ page-builder site's content** (DIVI etc.) into two canonical DB formats —
 
 - **[Content Normalization Playbook](docs/CONTENT_NORMALIZATION_PLAYBOOK.md)** — the full process (phases, QA gates, lessons)
 - `bin/content-tools/` — Python conversion toolkit (`divi_extract.py`, `html2md.py`, `divi2blocks.py`, `content_inventory.py`, `validate-blocks.php`) + per-site `content-conversion.config.{schema,example}.json` (see its `README.md`)
+- `just verify-content` / `just verify-hallucinations` — post-apply verification sweeps (`bin/content-tools/verify-content.php`, `content-hallucination-check.php`)
+- `just deploy-guard <url>` — refuses deployment while production still renders page-builder markup (or set `PROD_URL` in `.env` and make any push recipe depend on it)
 - `bin/visual-review.mjs` — Playwright screenshot crawl for visual/brand parity (`--base`, `--compare`)
 - `astro-core/wp/plugins/markdown-content/` — canonical Markdown writer plugin (`markdown_content_apply()`)
 - `astro-core/wp/mu-plugins/` — `headless-api/` (`engine`/`raw` fields) + `brand-palette.php` (brand editor-color-palette slugs)

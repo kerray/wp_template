@@ -61,8 +61,12 @@ meet in the middle.**
 
 ### Phase 3 — Independent verification (do NOT trust batch self-reports)
 - `just verify-content`: full-corpus sweep — engine vs target, residue,
-  `parse_blocks` validity (bin/verify-content.php in the site repo).
-- **Hallucination check** (bin/content-hallucination-check.php): import the
+  `parse_blocks` validity. Canonical script:
+  `wp_template/bin/content-tools/verify-content.php` (config-driven
+  `expected_skips`/`post_types`, non-zero exit on any failure); the recipe is
+  in the template Justfile.
+- **Hallucination check** (`just verify-hallucinations`, canonical script
+  `wp_template/bin/content-tools/content-hallucination-check.php`): import the
   pre-conversion snapshot into a sibling DB, verify no converted item
   contains words absent from its original. Benign flag classes: curated
   content, documented transforms, image alt text.
@@ -157,12 +161,14 @@ We verified text and structure to zero-loss, but never pixels — hence
   default to the key-route set (`/`, `/kalendar`, `/materska-skola`,
   `/zakladni-skola`, `/skolni-druzina`, `/waldorfska-pedagogika`, `/archiv-akci`,
   one event single, `/kontakty`) via a `key_routes` Justfile var.
-- **`design-parity` skill** (`site_waldorf/.claude/skills/design-parity/`) —
-  checklist-driven workflow (typography, heading hierarchy, brand colors,
-  spacing, container width 1080px, tables, category badges, buttons, island
-  interactive states). Every fix maps to a `presetSite` token / UnoCSS shortcut,
-  NOT ad-hoc CSS. Documents the Kalendar scoped-styles debt (island predates the
-  design system). Auto-triggers on styling/design-parity/visual-review work.
+- **`design-parity` skill** — checklist-driven workflow (typography, heading
+  hierarchy, brand colors, spacing, container width, tables, badges, buttons,
+  island interactive states). Every fix maps to a `presetSite` token / UnoCSS
+  shortcut, NOT ad-hoc CSS. Auto-triggers on styling/design-parity/visual-review
+  work. Canonical generic copy: `wp_template/.claude/skills/design-parity/`;
+  the waldorf instance (`site_waldorf/.claude/skills/design-parity/`) is the
+  worked example with concrete site data (1080px container, category badges,
+  Kalendar scoped-styles debt).
 - **First run (2026-07-10)** captured all 9 key routes ×2 viewports ×(base+prod)
   = 36 PNGs, zero failures. Top gaps surfaced for the design pass: (1) Astro
   pages lack production's watercolor hero/title band; (2) content not centered in
@@ -258,6 +264,12 @@ the Justfile header comment now mandates that any future `db-push`/`content-push
 reverse-`ftp-push` recipe declare `deploy-guard` as its first dependency
 (`my-push: deploy-guard`). Verified: with production still on DIVI the guard
 aborts as intended.
+
+**Generalized:** the template Justfile now ships a generic
+`deploy-guard url markers="et_pb_|/themes/Divi/"` recipe — pass the
+production URL (or set `PROD_URL` in `.env`) and optionally a marker regex
+for the site's builder. Any future push recipe must declare it as its first
+dependency (`my-push: deploy-guard` with `PROD_URL` set).
 - **Gotcha:** `echo "$HTML" | grep -q PATTERN` under `set -o pipefail` misreports
   a real match as "no match" — `grep -q` exits on first hit and SIGPIPEs the
   upstream `echo`, and pipefail propagates that as pipeline failure. Use a
