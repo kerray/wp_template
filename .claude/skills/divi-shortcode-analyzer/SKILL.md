@@ -5,6 +5,10 @@ description: Analyzes DIVI shortcodes and identifies patterns for conversion. Us
 
 # DIVI Shortcode Analyzer
 
+> **Upstream helper.** Use this to inventory a page's module mix / complexity
+> *before* converting. The conversion itself (DIVI → normalized core Gutenberg)
+> is owned by the **`divi-to-gutenberg`** skill.
+
 ## Instructions
 
 When analyzing DIVI shortcodes for Gutenberg conversion, follow this workflow:

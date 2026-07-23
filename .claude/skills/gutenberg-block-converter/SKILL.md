@@ -5,6 +5,12 @@ description: Converts analyzed DIVI shortcodes to Gutenberg block JSON format. U
 
 # Gutenberg Block Converter
 
+> **Entry point moved.** For converting a whole DIVI page, use the
+> **`divi-to-gutenberg`** skill — it owns the normalization policy (strip
+> cosmetics, keep structure) and validated worked examples. Use *this* skill
+> only as a low-level "how does core block X serialize" reference; its
+> preserve-styling guidance is overridden by divi-to-gutenberg's DROP rules.
+
 ## Instructions
 
 When converting DIVI shortcodes to Gutenberg blocks, follow this systematic approach:

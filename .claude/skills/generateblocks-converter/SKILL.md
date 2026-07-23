@@ -1,9 +1,15 @@
 ---
 name: generateblocks-converter
-description: Converts DIVI shortcodes to GenerateBlocks format including GeneratePress theme integration. Use when converting DIVI layouts to GenerateBlocks with proper GeneratePress theme compatibility and spacing values.
+description: "SUPERSEDED when the conversion target is core Gutenberg (the normalized-content pipeline default) — see the divi-to-gutenberg skill. Kept only as a GenerateBlocks/GeneratePress reference for sites that deliberately target GenerateBlocks. Do NOT use for per-page DIVI conversion."
 ---
 
 # GenerateBlocks Converter
+
+> **⚠️ SUPERSEDED for normalized-content conversions.** Per-page DIVI
+> conversion targets **core** Gutenberg blocks and is owned by the
+> **`divi-to-gutenberg`** skill (normalized, core-first). Do not emit
+> `generateblocks/*` blocks unless the site deliberately targets
+> GenerateBlocks. This file remains as background on GenerateBlocks.
 
 ## Instructions
 

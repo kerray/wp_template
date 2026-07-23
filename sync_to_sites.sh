@@ -117,9 +117,23 @@ sync_site() {
     # NOTE: no --delete — sites carry site-specific skills (e.g. waldorf's
     # calendar-upgrade) and settings.local.json that a template sync must
     # never remove. Template skills update in place; removals are manual.
+    #
+    # Protection rules, in order:
+    #   - settings.local.json is site-local and NEVER synced.
+    #   - a site may list paths (relative to .claude/, rsync exclude syntax,
+    #     one per line, '#' comments) in .claude/sync-protect.txt; those are
+    #     never overwritten — for skills the site has localized (e.g.
+    #     waldorf's divi-to-gutenberg with site data). The protect file
+    #     itself is never synced.
     if [ -d "$TEMPLATE_DIR/.claude" ]; then
         log_info "Syncing .claude directory to $site_name"
-        rsync -av "$TEMPLATE_DIR/.claude/" "$site_dir/.claude/" 2>/dev/null || log_warning "Failed to sync .claude directory"
+        local claude_excludes=(--exclude settings.local.json --exclude sync-protect.txt)
+        local protect_file="$site_dir/.claude/sync-protect.txt"
+        if [ -f "$protect_file" ]; then
+            log_info "  honoring $site_name/.claude/sync-protect.txt"
+            claude_excludes+=(--exclude-from "$protect_file")
+        fi
+        rsync -av "${claude_excludes[@]}" "$TEMPLATE_DIR/.claude/" "$site_dir/.claude/" 2>/dev/null || log_warning "Failed to sync .claude directory"
     fi
     
     # Sync template files

@@ -34,10 +34,12 @@ cosmetics (fonts, sizes, colors, spacing) are dropped — the design system
    `markdown_content_apply()` writer) + headless API `engine`/`raw` fields.
    Detection order: `_headless_engine` meta override → markdown source →
    `<!-- wp:` → builder shortcode marker → `html`.
-3. **Conversion skill**: one authoritative skill (waldorf:
-   `.claude/skills/divi-to-gutenberg/`) holding ALL policy decisions
-   (RESOLVED, never re-decided per page), the DROP list, chrome signatures,
-   validation gate.
+3. **Conversion skill**: one authoritative skill
+   (`.claude/skills/divi-to-gutenberg/`, genericized in the template) holding
+   ALL policy decisions (RESOLVED, never re-decided per page), the DROP list,
+   and the validation gate; site-specific data (chrome signatures, palette,
+   shortcode allowlist) lives in `content-conversion.config.json`, not in the
+   skill.
 4. **Frontend**: per-item engine resolution in astro-core
    (`resolveEngine` → `getAdapter(engine)` → ContentNode IR →
    ContentRenderer). `contentEngine` in site config is only a fallback hint.
@@ -96,8 +98,9 @@ Distilled from the best waldorf batch scripts:
   only; functional shortcodes verbatim; unknown modules → TODO marker + non-zero
   exit).
 - `validate-blocks.php` — the `parse_blocks()` gate. **Canonical copy now lives
-  here**; `divi-to-gutenberg/references/validate-blocks.php` is kept in sync for
-  skill self-containment (noted in that skill's SKILL.md).
+  here**; the template's `divi-to-gutenberg` skill points straight at it (the
+  waldorf site instance keeps a synced `references/` copy for
+  self-containment).
 - `content_inventory.py` — regenerate the manifest from any WP DB (`gen-dump`
   READ-ONLY PHP dump + offline `build` classifier). Rebuilt from the
   scratch-only waldorf inventory script.

@@ -1,275 +1,166 @@
 ---
 name: divi-to-gutenberg
-description: Complete DIVI to Gutenberg/GenerateBlocks migration workflow. Use when migrating a WordPress site from DIVI Builder to standard Gutenberg blocks or GenerateBlocks. Handles inventory, export, conversion, review, and publishing.
+description: >-
+  THE authoritative workflow for converting a DIVI-built WordPress page into
+  clean, NORMALIZED core Gutenberg block markup. Use whenever migrating,
+  converting, or normalizing DIVI content ([et_pb_section], [et_pb_row],
+  [et_pb_text], [et_pb_image], [et_pb_toggle]/[et_pb_accordion], [et_pb_tabs],
+  [et_pb_blurb], [et_pb_button], [et_pb_gallery], sliders, dividers) into
+  Gutenberg blocks (core/group, core/columns, core/heading, core/paragraph,
+  core/image, core/gallery, core/buttons, core/details, core/separator,
+  core/table, core/embed). Trigger on "convert DIVI to Gutenberg", "normalize
+  DIVI page", "DIVI to blocks", "strip DIVI shortcodes to core blocks". For the
+  headless Astro Markdown target instead, use divi-to-astro-content.
 ---
 
-# DIVI to Gutenberg Migration
+# DIVI → normalized Gutenberg
 
-Complete workflow for migrating WordPress sites from DIVI Builder to Gutenberg blocks (with optional GenerateBlocks support for advanced layouts).
+The single entry point for converting **one DIVI page** into clean core
+Gutenberg blocks. This skill supersedes the ad-hoc `gutenberg-block-converter`
+and `generateblocks-converter` skills for per-page conversion (see
+[Relationship to other skills](#relationship-to-other-skills)).
 
-## Quick Start
+Site-specific data (palette, chrome signatures, functional shortcodes, table
+prefix) comes from the site's **`content-conversion.config.json`** — see
+`bin/content-tools/README.md`. Never hardcode it in conversion output.
+
+## Core philosophy — content is content; formatting comes from site styles
+
+The site's design system supplies **all** typography and spacing (UnoCSS on the
+Astro frontend; theme styles in WordPress). Therefore:
+
+- **PRESERVE real structure** — sections/groups, columns, toggles/accordions,
+  tabs, image+text layouts, buttons, galleries, lists, tables, headings.
+- **STRIP per-element cosmetic variation** — custom fonts, font sizes,
+  letter-spacing, line-height, text colors, per-module margins/paddings, border
+  radii, box shadows, animations, DIVI dividers, custom CSS.
+- **Keep only semantically meaningful attributes** — alignment, wide/full
+  width, heading levels, list type/ordering, and brand-palette colors *only*
+  where the color carries meaning (a deliberate callout), mapped to a **named
+  palette slug, never a hex value**. The palette slugs come from the site
+  config (`palette` in `content-conversion.config.json`, mirroring
+  `site.config.ts` `brand.colors` on the Astro side).
+
+If in doubt: drop the styling, keep the content and its structure. A converted
+page should look intentionally plain in the bare editor — the theme dresses it.
+
+## Tooling — run the converter, review its output
+
+`bin/content-tools/divi2blocks.py` implements the normalization rules below
+mechanically (config-driven; unknown modules emit a `TODO:` marker + non-zero
+exit). Prefer running it and reviewing/fixing its output over converting whole
+pages by hand; convert by hand when a page needs judgment the tool can't make,
+and follow the same rules.
+
+## Workflow (per page)
+
+1. **Read the source** (read-only):
+   `docker compose exec -T wordpress wp post get <ID> --field=content --allow-root`
+2. **Identify chrome vs. content.** Drop global modules and page furniture
+   *before* converting anything — see the DROP list. Typical chrome: hero band
+   styling, breadcrumb global modules, wave-divider spacer sections, footer
+   nav globals. The site config's `chrome.*` keys hold the site's signatures.
+3. **Convert structure top-down**: section → (usually nothing, or core/group
+   only if it carries a *meaningful* callout background), row → core/columns,
+   column → core/column, then the content modules inside.
+4. **Normalize the inner HTML** of each `[et_pb_text]` — unwrap DIVI/legacy
+   toggle wrappers, drop inline color spans and empty tags, fix wpautop/texturize
+   quirks. See references/normalization-rules.md § "Inner-HTML normalization".
+5. **Pass functional shortcodes through verbatim** inside `core/shortcode`
+   blocks (events/calendar shortcodes, pdf viewers, contact forms — the site
+   config's `functional_shortcode_allowlist`). Never convert or restyle them.
+6. **Validate** the output parses with zero invalid blocks (see below). Fix any
+   `BAD_freeform_with_content` before considering the page done.
+
+## The rules — read this before converting
+
+The complete, authoritative mapping lives in
+**references/normalization-rules.md**:
+
+- Module → core block table (what carries over, what is dropped).
+- The explicit **DROP list** (fonts, sizes, colors, spacing, animations, custom
+  CSS, dividers, global modules, disabled/spacer/empty modules).
+- **Column-structure mapping** (`4_4`→100%, `1_2`→50%, `1_3`→33.33%,
+  `2_3`→66.67%, `1_4`→25%, `3_4`→75%, `1_5`→20%, `3_5`/`2_5`, `1_6`).
+- **wpautop / texturize quirks** inside `et_pb_text` (encoded quotes,
+  `<span>`-wrapped shortcode attribute names, `<div>` used as paragraph, stray
+  `<big></big>`/`&nbsp;` filler).
+- The **verbatim-shortcode passthrough** rule.
+- Brand palette slug mapping (callout colors only).
+- **§10 Policy decisions** — palette slugs, image-host policy (keep DB URLs
+  verbatim), tabs → all-closed details stack or functional passthrough, blurb
+  link-grid handling (list/buttons/drop — never infer links), ALL-CAPS left
+  verbatim, body `<h1>` demoted to `<h2>`. Mass conversion applies these
+  uniformly; do not re-decide per page.
+
+Raw DIVI attribute meanings (not the normalization policy) are documented in
+the site repo's `docs/divi/` (per-module files) and `docs/gutenberg/`
+(per-block save markup). Refer to those rather than re-deriving attribute
+semantics; this skill defines *what to keep vs. drop*, which is the opposite
+of a preserve-everything conversion matrix.
+
+## Worked examples
+
+The waldorf-brno.cz instance of this skill (in the `site_waldorf` repo) keeps
+`references/worked-examples.md` — three real pages converted end-to-end,
+before → after, each verified with `parse_blocks` (simple / moderate /
+complex: chrome dropping, `[et_pb_accordion]` → `core/details`, inline-color
+stripping, gallery id-resolution, URL-less blurb grid dropped as chrome). Use
+them as the canonical reference for what normalized output looks like.
+
+## Validation (required before a page is "done")
+
+`bin/content-tools/validate-blocks.php` runs `parse_blocks()` over the
+converted markup and fails if any content falls outside a block (would cause
+the editor's "block recovery" prompt) or if any unexpected/unknown block
+appears.
 
 ```bash
-# 1. Generate inventory of all DIVI content
-just divi-inventory
-
-# 2. Export content for conversion
-just divi-export page my-page-slug
-
-# 3. Convert to Gutenberg
-just divi-convert page my-page-slug
-
-# 4. Review and publish
-just divi-screenshot-before page my-page-slug
-just divi-publish page my-page-slug
-just divi-screenshot-after page my-page-slug
+# from repo root, WordPress container up:
+docker compose cp converted.html wordpress:/tmp/converted.html
+docker compose cp bin/content-tools/validate-blocks.php wordpress:/tmp/validate-blocks.php
+docker compose exec -T wordpress wp eval-file /tmp/validate-blocks.php /tmp/converted.html --allow-root
+# RESULT: PASS  (exit 0)  →  0 BAD_freeform_with_content, only allowed core/* blocks
 ```
 
-## Migration Philosophy
+Quick inline check without a file:
 
-### Goals
-1. **Preserve content and layout** - Structurally equivalent, not pixel-perfect
-2. **Remove DIVI dependency** - Clean Gutenberg HTML, no DIVI shortcodes
-3. **Standard Gutenberg first** - Only use GenerateBlocks when necessary
-4. **Incremental migration** - Start simple, scale up, handle edge cases
-5. **Full reversibility** - Original content preserved, easy rollback
-
-### Non-Destructive Workflow
-- Original DIVI content backed up to `content/{type}/{slug}/original.txt`
-- Publishing creates NEW page with `-gut` suffix (e.g., `my-page-gut`)
-- Original page untouched until manual swap
-- Screenshots for visual comparison before/after
-
-## Directory Structure
-
-```
-content/
-├── inventory/                    # Migration tracking
-│   ├── simple.md                 # Checklist: simple content
-│   ├── moderate.md               # Checklist: moderate complexity
-│   ├── complex.md                # Checklist: complex content
-│   └── too-hard.md               # Flagged for manual handling
-│
-├── pages/                        # Page content by slug
-│   └── {slug}/
-│       ├── original.txt          # Raw DIVI content (backup)
-│       ├── converted.html        # Gutenberg HTML (working file)
-│       ├── metadata.json         # Structured metadata
-│       ├── screenshot-before.png # Screenshot before conversion
-│       └── screenshot-after.png  # Screenshot after conversion
-│
-├── posts/                        # Posts by slug (same structure)
-└── akce/                         # Custom post types (same structure)
-```
-
-## Justfile Commands
-
-### Phase 1: Inventory & Export
 ```bash
-just divi-inventory              # Generate inventory with complexity scoring
-just divi-export {type} {slug}   # Export single item
-just divi-export-all {type}      # Export all of a post type
+docker compose exec -T wordpress wp eval '
+$b = parse_blocks(file_get_contents("/tmp/converted.html"));
+$bad=0; $f=function($bs)use(&$f,&$bad){foreach($bs as $x){if($x["blockName"]===null&&trim($x["innerHTML"])!=="")$bad++;if(!empty($x["innerBlocks"]))$f($x["innerBlocks"]);}};
+$f($b); echo "invalid: $bad\n";' --allow-root
 ```
 
-### Phase 2: Conversion
-```bash
-just divi-convert {type} {slug}           # Convert single item
-just divi-convert-batch {complexity}      # Batch convert by complexity
-just divi-convert-batch-dry {complexity}  # Preview batch conversion
-```
+A clean page reports `invalid: 0`. Blank lines between blocks parse as empty
+freeform blocks with no content — that is normal and **not** a failure.
 
-### Phase 3: Review & Publish
-```bash
-just divi-screenshot-before {type} {slug} # Screenshot original
-just divi-publish {type} {slug}           # Publish as new page with -gut suffix
-just divi-screenshot-after {type} {slug}  # Screenshot converted
-just divi-restore {type} {slug}           # Rollback if needed
-```
+After a batch, run the independent full-corpus sweep: `just verify-content`
+(and `just verify-hallucinations` against the pre-conversion snapshot).
 
-### Utility Commands
-```bash
-just divi-status                 # Show migration progress
-just divi-list {status}          # List content by status
-just divi-help                   # Show all DIVI commands
-```
+## Relationship to other skills
 
-## Complexity Scoring
+- **divi-shortcode-analyzer** — still useful *upstream*: run it to inventory a
+  page's module mix and complexity before converting. Not superseded.
+- **gutenberg-block-converter** — low-level "how does core block X serialize"
+  reference. Consult the site repo's `docs/gutenberg/core_*.md` for exact save
+  markup, but this skill's normalization rules override its preserve-styling
+  guidance.
+- **generateblocks-converter / generatepress-design** — **superseded when the
+  conversion target is core Gutenberg** (the normalized-content pipeline
+  default). Do not emit `generateblocks/*` blocks. Use core blocks per the
+  tables here.
+- **divi-to-astro-content** — sibling with a different target (headless Astro
+  Markdown, layout flattened). Use that when the destination is the site
+  repo's `astro/src/content/pages/*.md`; use *this* skill when the destination
+  is Gutenberg block markup inside WordPress.
 
-### Shortcode Weights
-| Shortcode | Weight | Reason |
-|-----------|--------|--------|
-| et_pb_text | 1 | Direct → paragraph/heading |
-| et_pb_button | 1 | Direct → button block |
-| et_pb_image | 1 | Direct → image block |
-| et_pb_column | 2 | → Gutenberg column |
-| et_pb_row | 2 | → Gutenberg columns |
-| et_pb_blurb | 3 | → Group + image + text |
-| et_pb_section | 3 | Container with backgrounds |
-| et_pb_tabs | 5 | Requires tabs block/plugin |
-| et_pb_tab | 2 | Tab content |
-| et_pb_blog | 8 | Dynamic query block |
+## Guardrails
 
-### Complexity Levels
-- **Simple** (score 1-20): Basic shortcodes, straightforward conversion
-- **Moderate** (score 21-50): Mix of shortcodes, some layout complexity
-- **Complex** (score 51+): Advanced features, tabs, blogs, custom layouts
-
-## Conversion Rules
-
-### Basic Conversions
-
-**Section → Group**
-```
-DIVI: [et_pb_section background_color="#ffffff"]
-Gutenberg: <!-- wp:group {"backgroundColor":"background"} -->
-```
-
-**Row + Columns → Columns Block**
-```
-DIVI: [et_pb_row][et_pb_column type="1_2"]...[/et_pb_column][/et_pb_row]
-Gutenberg: <!-- wp:columns --><!-- wp:column {"width":"50%"} -->...<!-- /wp:column --><!-- /wp:columns -->
-```
-
-**Text → Paragraph/Heading**
-```
-DIVI: [et_pb_text]<h2>Title</h2><p>Content</p>[/et_pb_text]
-Gutenberg: <!-- wp:heading --><h2>Title</h2><!-- /wp:heading -->
-           <!-- wp:paragraph --><p>Content</p><!-- /wp:paragraph -->
-```
-
-**Button → Button Block**
-```
-DIVI: [et_pb_button button_text="Click" button_url="/link"]
-Gutenberg: <!-- wp:buttons --><!-- wp:button --><a href="/link">Click</a><!-- /wp:button --><!-- /wp:buttons -->
-```
-
-**Image → Image Block**
-```
-DIVI: [et_pb_image src="image.jpg" align="center"]
-Gutenberg: <!-- wp:image {"align":"center"} --><figure><img src="image.jpg"/></figure><!-- /wp:image -->
-```
-
-### Column Width Mapping
-
-| DIVI `type` | Gutenberg `width` |
-|-------------|-------------------|
-| `4_4` | `100%` |
-| `1_2` | `50%` |
-| `1_3` | `33.33%` |
-| `2_3` | `66.66%` |
-| `1_4` | `25%` |
-| `3_4` | `75%` |
-
-### GenerateBlocks (When Needed)
-
-Use GenerateBlocks for:
-- Complex responsive layouts (Grid block)
-- Advanced spacing control (Container block)
-- Tabs functionality (GenerateBlocks Pro)
-- Better column control than core Gutenberg
-
-```
-GenerateBlocks Grid:
-<!-- wp:generateblocks/grid {"columns":3,"gap":20} -->
-  <!-- wp:generateblocks/container -->Content 1<!-- /wp:generateblocks/container -->
-  <!-- wp:generateblocks/container -->Content 2<!-- /wp:generateblocks/container -->
-  <!-- wp:generateblocks/container -->Content 3<!-- /wp:generateblocks/container -->
-<!-- /wp:generateblocks/grid -->
-```
-
-## Special Handling
-
-### Custom Shortcodes
-Preserve theme-independent shortcodes exactly as-is:
-```
-[akce category="" pocet="5"]  → Keep unchanged
-[contact-form-7 id="123"]     → Keep unchanged
-[gallery ids="1,2,3"]         → Keep unchanged
-```
-
-### PDF Preview Images
-Pattern: PDF link followed by numbered images
-```
-Before: <img src="1.jpg"/><img src="2.jpg"/>
-After:  [pdfjs-viewer url="document.pdf"]
-```
-Flag for manual confirmation before replacing.
-
-### Tabs
-- Use GenerateBlocks Pro tabs if available
-- Otherwise use Kadence Blocks tabs
-- Or convert to accordion/expandable sections
-
-## Metadata Structure
-
-```json
-{
-  "id": 123,
-  "post_type": "page",
-  "title": "Page Title",
-  "slug": "page-slug",
-  "status": "pending",
-  "complexity": "simple",
-  "complexity_score": 12,
-  "shortcodes_found": ["et_pb_section", "et_pb_row", "et_pb_text"],
-  "original": {
-    "exported_at": "2025-12-01T10:00:00Z"
-  },
-  "converted": {
-    "converted_at": null,
-    "notes": []
-  },
-  "published": {
-    "published_at": null,
-    "duplicate_slug": null
-  }
-}
-```
-
-### Status Flow
-```
-pending → converted → reviewed → published
-    ↓         ↓
- too-hard   skipped
-```
-
-## Related Skills
-
-This skill orchestrates:
-- **divi-shortcode-analyzer** - Analyze DIVI content structure
-- **gutenberg-block-converter** - Convert to standard Gutenberg
-- **generateblocks-converter** - Convert to GenerateBlocks format
-
-## Documentation References
-
-- `docs/DIVI_MIGRATION_PLAN.md` - Detailed migration plan
-- `docs/divi/` - DIVI shortcode documentation
-- `docs/gutenberg/` - Gutenberg block reference
-- `docs/generateblocks/` - GenerateBlocks conversion guide
-
-## Best Practices
-
-1. **Start with simple content** - Build confidence before complex pages
-2. **Use batch operations carefully** - Preview with `--dry-run` first
-3. **Compare screenshots** - Visual verification catches issues
-4. **Keep originals** - Never modify original DIVI content until final swap
-5. **Test custom shortcodes** - Ensure they work in Gutenberg context
-6. **Document edge cases** - Notes in metadata help future conversions
-
-## Troubleshooting
-
-### Missing Images
-Images may be missing in local dev environment:
-```bash
-curl -sL "https://production-site.com/wp-content/uploads/..." -o ./uploads/...
-```
-
-### Conversion Errors
-Check `content/{type}/{slug}/notes.md` for conversion issues.
-
-### Screenshot Requirements
-Screenshots require Playwright MCP server to be connected.
-
-### Database Issues
-DIVI stores content in `post_content` with shortcode format.
-Use WP-CLI for reliable export: `wp post get {id} --field=content`
+- **Read-only WordPress.** Never write/update posts from this skill; conversion
+  output is produced to files for human review and separate publishing
+  (`markdown_content_apply()` / the site's block writer own the DB write).
+- **Never deploy converted content onto a production site still rendering via
+  the DIVI theme** — `just deploy-guard` enforces this.
+- Preserve the site's copy verbatim (language, casing, wording) — rewriting
+  copy is a per-page editorial decision, not part of normalization.
